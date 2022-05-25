@@ -739,7 +739,7 @@ namespace HospiFication.Controllers
             return View(common);
 
         }
-        public IActionResult Logout()
+        public IActionResult Logout(n)
         {
             Role = "";
             UserName = "";
