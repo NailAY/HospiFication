@@ -4,10 +4,39 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace HospiFication.Models
 {
 
+    public class User
+    {
+        public int Id { get; set; }
+        public string UserName { get; set; }
+        public string HashedPassword { get; set; }
+
+        public int? RoleId { get; set; }
+        public Role Role { get; set; }
+    }
+    public class Role
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public List<User> Users { get; set; }
+        public Role()
+        {
+            Users = new List<User>();
+        }
+    }
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Не указано имя пользователя")]
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Не указан пароль")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+    }
     public class AttendingDoc
     {
         public int AttendingDocID { get; set; }
@@ -66,10 +95,10 @@ namespace HospiFication.Models
         public int NotificationId { get; set; }
         public int ExtractionID { get; set; }
         public Extraction Extraction { get; set; }
-        public int PatientID { get; set; }
+        public int PID { get; set; }
         public Patient Patient { get; set; }
         public string NotificationText { get; set; }
-        public int RelativeID { get; set; }
+        public int RID { get; set; }
         public Relative Relative { get; set; }
     }
 

@@ -12,6 +12,11 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Text;
 using System.Collections;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace HospiFication.Controllers
 {
@@ -20,7 +25,7 @@ namespace HospiFication.Controllers
         BaseContext db;
         public static string Role = "";
         public static string UserName = "";
-        public static int UserIdWithThisRole = new int();
+        public static int DocIdWithThisRole = new int();
         public HomeController(BaseContext context)
         {
             db = context;
@@ -28,7 +33,8 @@ namespace HospiFication.Controllers
         public static UserDataPatients userdatapatients = new UserDataPatients();
         public static UserDataAttendingDocs userdataattendingdocs = new UserDataAttendingDocs();
         public static UserDataEmergencyDocs userdataemergencydocs = new UserDataEmergencyDocs();
-
+      
+        [Authorize(Roles = "Администратор, Лечащий врач, Врач приёмного отделения")]
         public ActionResult Index()
         {
             userdataattendingdocs.search = null;
@@ -49,370 +55,108 @@ namespace HospiFication.Controllers
             return View();
         }
 
-        public ActionResult Login()
+        [HttpGet]
+        public IActionResult Login()
         {
-            if ((UserName != "") & (Role != ""))
-            {
+            if (String.IsNullOrEmpty(UserName))
+                return View();
+            else
                 return RedirectToAction("Index");
-            }
-            return View();
         }
         [HttpPost]
-        public IActionResult Login(AttendingDoc attendingdoc)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginModel model)
         {
-            if ((UserName != "") & (Role != ""))
+            if (ModelState.IsValid)
             {
-                return RedirectToAction("Index");
-            }
-            AttendingDoc a = new AttendingDoc();
-            string User = attendingdoc.Attending_Doc_FIO;
-            int rolecounter = 0;
-            string Password = "";
-            if (db.AttendingDocs.Where((p => p.Attending_Doc_FIO.Equals(User))).Count() != 0)
-            {
-                attendingdoc.AttendingDocID = db.AttendingDocs.FirstOrDefault(p => p.Attending_Doc_FIO.Equals(User)).AttendingDocID;
-                Password = db.AttendingDocs.FirstOrDefault(p => p.Attending_Doc_FIO.Equals(User)).Password;
-            }
-
-            if ((Password == "") & (db.EmergencyDocs.Where((p => p.Emergency_Doc_FIO.Equals(User))).Count() != 0))
-            {
-                attendingdoc.AttendingDocID = db.EmergencyDocs.FirstOrDefault(p => p.Emergency_Doc_FIO.Equals(User)).EmergencyDocID;
-                Password = db.EmergencyDocs.FirstOrDefault(p => p.Emergency_Doc_FIO.Equals(User)).Password;
-                rolecounter = 1;
-            }
-            if (Password == "")
-            {
-                Password = "%a1002a%";
-                rolecounter = 2;
-            }
-
-            string key = "htmb";
-            int keylength = key.Length;
-            char[] char_key = new char[keylength];
-            int[] int_key = new int[keylength];
-            int passLength = attendingdoc.Password.Length;
-            AttendingDoc check = new AttendingDoc();
-            if (passLength % 2 == 1)
-            {
-                passLength = attendingdoc.Password.Length + 1;
-                char[] char_password = new char[passLength];
-                int[] int_password = new int[passLength];
-                char_password[passLength - 1] = '.';
-                check.Password = attendingdoc.Password;
-                cypher(char_password, int_password, char_key, int_key, passLength, check, key, keylength);
-            }
-            else
-            {
-                passLength = attendingdoc.Password.Length;
-                char[] char_password = new char[passLength];
-                int[] int_password = new int[passLength];
-                check.Password = attendingdoc.Password;
-                cypher(char_password, int_password, char_key, int_key, passLength, check, key, keylength);
-            }
-            //if (Password != "%a1002a%")
-            //{
-            //    byte[] bytes = Encoding.UTF32.GetBytes(Password);
-            //    Password = Encoding.Default.GetString(bytes);
-            //}
-
-            if ((Password == check.Password) | (Password == "%a1002a%"))
-            {
-                if (rolecounter == 0)
+                User user = await db.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.UserName == model.UserName && u.HashedPassword == model.Password);
+                if (user != null)
                 {
-                    Role = "Лечащий врач";
-                    UserName = attendingdoc.Attending_Doc_FIO;
-                    UserIdWithThisRole = attendingdoc.AttendingDocID;
+                    await Authenticate(user); // аутентификация
+                    UserName = user.UserName;
+                    return RedirectToAction("Index", "Home");
                 }
-                else if (rolecounter == 1)
-                {
-                    Role = "Врач приёмного отделения";
-                    UserName = attendingdoc.Attending_Doc_FIO;
-                    UserIdWithThisRole = attendingdoc.AttendingDocID;
-                }
-                else if (rolecounter == 2)
-                {
-                    Role = "Администратор";
-                    UserName = attendingdoc.Attending_Doc_FIO;
-                }
-                return RedirectToAction("Index");
+                ModelState.AddModelError("", "Некорректные логин и(или) пароль");
             }
-            else
+            return View(model);
+        }
+        private async Task Authenticate(User user)
+        {
+            // создаем один claim
+            var claims = new List<Claim>
             {
-                return RedirectToAction("Login");
-            }
-
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.UserName),
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
+            };
+            Role = user.Role.Name;
+            if (Role == "Лечащий врач")
+                DocIdWithThisRole = (db.AttendingDocs.FirstOrDefault(d => d.Attending_Doc_FIO.Equals(user.UserName))).AttendingDocID;
+            else if (Role == "Врач приёмного отделения")
+                DocIdWithThisRole = (db.EmergencyDocs.FirstOrDefault(d => d.Emergency_Doc_FIO.Equals(user.UserName))).EmergencyDocID;
+            // создаем объект ClaimsIdentity
+            ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType,
+                ClaimsIdentity.DefaultRoleClaimType);
+            // установка аутентификационных куки
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
 
-        public IActionResult AddAttendDoc()
+
+        public IActionResult AddAttendDocUser()
         {
-            return View();
+            User user = new User();
+            user.RoleId = 2;
+            user.Role = db.Roles.FirstOrDefault(i => i.Id.Equals(user.RoleId));
+            return View(user);
         }
 
         //===========================================
         [HttpPost]
-        public async Task<IActionResult> AddAttendDoc(AttendingDoc attendingdoc)
+        public async Task<IActionResult> AddAttendDocUser(User user)
         {
-
-            string key = "htmb";
-            int keylength = key.Length;
-            char[] char_key = new char[keylength];
-            int[] int_key = new int[keylength];
-            int passLength = attendingdoc.Password.Length;
-            if (passLength % 2 == 1)
-            {
-                passLength = attendingdoc.Password.Length + 1;
-                char[] char_password = new char[passLength];
-                int[] int_password = new int[passLength];
-                char_password[passLength - 1] = '.';
-                cypher(char_password, int_password, char_key, int_key, passLength, attendingdoc, key, keylength);
-            }
-            else
-            {
-                passLength = attendingdoc.Password.Length;
-                char[] char_password = new char[passLength];
-                int[] int_password = new int[passLength];
-                cypher(char_password, int_password, char_key, int_key, passLength, attendingdoc, key, keylength);
-            }
-
-
-
-            ///////////////////////////////////////
-            db.AttendingDocs.Add(attendingdoc);
+            db.Users.Add(user);
             await db.SaveChangesAsync();
-            return RedirectToAction("Index");
+            return RedirectToAction("AddAttendDoc");
         }
 
-        public IActionResult AddEmergeDoc()
+
+        public IActionResult AddEmergeDocUser()
         {
-            return View();
+            User user = new User();
+            user.RoleId = 3;
+            user.Role = db.Roles.FirstOrDefault(i => i.Id.Equals(user.RoleId));
+            return View(user);
         }
         [HttpPost]
-        public async Task<IActionResult> AddEmergeDoc(EmergencyDoc emergencyDoc)
+        public async Task<IActionResult> AddEmergeDocUser(User user)
         {
-
-            string key = "htmb";
-            int keylength = key.Length;
-            char[] char_key = new char[keylength];
-            int[] int_key = new int[keylength];
-            int passLength = emergencyDoc.Password.Length;
-            if (passLength % 2 == 1)
-            {
-                passLength = emergencyDoc.Password.Length + 1;
-                char[] char_password = new char[passLength];
-                int[] int_password = new int[passLength];
-                char_password[passLength - 1] = '.';
-                cypher(char_password, int_password, char_key, int_key, passLength, emergencyDoc, key, keylength);
-            }
-            else
-            {
-                passLength = emergencyDoc.Password.Length;
-                char[] char_password = new char[passLength];
-                int[] int_password = new int[passLength];
-                cypher(char_password, int_password, char_key, int_key, passLength, emergencyDoc, key, keylength);
-            }
-
-
-
-            ///////////////////////////////////////
-            db.EmergencyDocs.Add(emergencyDoc);
+            db.Users.Add(user);
             await db.SaveChangesAsync();
-            return RedirectToAction("Index");
+            return RedirectToAction("AddEmergeDoc");
         }
 
         ////////////////////////////////////////////////////
 
-
-        static void cypher(char[] char_message, int[] int_message, char[] char_key, int[] int_key, int msglength, AttendingDoc message, string key, int keylength)
+        [HttpPost]
+        public async Task<IActionResult> AddEmergeDoc()
         {
-            char[] char_message_left = new char[msglength / 2];
-            char[] char_message_right = new char[msglength / 2];
-            int[] int_message_left = new int[msglength / 2];
-            int[] int_message_right = new int[msglength / 2];
-            int count = 0;
-
-            ///двоичный вид пароля
-            for (int i = 0; i < message.Password.Length; i++)
-            {
-
-                char_message[i] = message.Password[i];
-                int_message[i] = char_message[i];
-
-
-            }
-
-            //ключ в двоичном виде
-            for (int j = 0; j < keylength; j++)
-            {
-                char_key[j] = key[j];
-                int_key[j] = char_key[j];
-            }
-
-            for (int i = 0; i < msglength / 2; i++)
-            {
-                char_message_left[i] = char_message[i];
-                int_message_left[i] = char_message_left[i];
-            }
-
-
-
-            for (int i = 0; i < msglength / 2; i++)
-            {
-                char_message_right[i] = char_message[i + (msglength / 2)];
-                int_message_right[i] = char_message_right[i];
-            }
-
-            int[] int_temp = new int[msglength / 2];
-            char[] temp = new char[msglength / 2];
-
-
-            //шифрование
-
-            for (int j = 0; j < keylength; j++)
-            {
-                int int_keys_letter = key[j];
-                count = 0;
-
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    temp[i] = char_message_left[i];
-                    int_temp[i] = int_message_left[i];
-                }
-
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    if (count == (msglength / 2 - 1))
-                    {
-                        int_message_left[i] = int_message_left[i] ^ int_keys_letter;
-                        int_message_left[i] = int_message_right[i] ^ int_message_left[i];
-                    }
-                    else
-                    {
-                        int_message_left[i] = int_message_left[i] ^ 0;
-                        int_message_left[i] = int_message_left[i] ^ int_message_right[i];
-                    }
-                    char_message_left[i] = (char)int_message_left[i];
-                    count++;
-                }
-
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    char_message_right[i] = temp[i];
-                    int_message_right[i] = int_temp[i];
-                }
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    char_message[i] = char_message_left[i];
-                    char_message[i + (msglength / 2)] = char_message_right[i];
-                    int_message[i] = int_message_left[i];
-                    int_message[i + (msglength / 2)] = int_message_right[i];
-                }
-            }
-            message.Password = "";
-            foreach (char letter in char_message_left)
-            {
-                message.Password += letter;
-            }
-            foreach (char letter in char_message_right)
-            {
-                message.Password += letter;
-            }
+            EmergencyDoc emergencyDoc = new EmergencyDoc();
+            emergencyDoc.Emergency_Doc_FIO = db.Users.OrderByDescending(p => p.Id).First(p => p.RoleId==3).UserName;
+            emergencyDoc.Password = db.Users.OrderByDescending(p => p.Id).First(p => p.RoleId == 3).HashedPassword;
+            db.EmergencyDocs.Add(emergencyDoc);
+            await db.SaveChangesAsync();
+            return RedirectToAction("EmergeDocs");
         }
-        static void cypher(char[] char_message, int[] int_message, char[] char_key, int[] int_key, int msglength, EmergencyDoc message, string key, int keylength)
+        public async Task<IActionResult> AddAttendDoc()
         {
-            char[] char_message_left = new char[msglength / 2];
-            char[] char_message_right = new char[msglength / 2];
-            int[] int_message_left = new int[msglength / 2];
-            int[] int_message_right = new int[msglength / 2];
-            int count = 0;
-
-            ///двоичный вид пароля
-            for (int i = 0; i < message.Password.Length; i++)
-            {
-
-                char_message[i] = message.Password[i];
-                int_message[i] = char_message[i];
-
-
-            }
-
-            //ключ в двоичном виде
-            for (int j = 0; j < keylength; j++)
-            {
-                char_key[j] = key[j];
-                int_key[j] = char_key[j];
-            }
-
-            for (int i = 0; i < msglength / 2; i++)
-            {
-                char_message_left[i] = char_message[i];
-                int_message_left[i] = char_message_left[i];
-            }
-
-
-
-            for (int i = 0; i < msglength / 2; i++)
-            {
-                char_message_right[i] = char_message[i + (msglength / 2)];
-                int_message_right[i] = char_message_right[i];
-            }
-
-            int[] int_temp = new int[msglength / 2];
-            char[] temp = new char[msglength / 2];
-
-
-            //шифрование
-
-            for (int j = 0; j < keylength; j++)
-            {
-                int int_keys_letter = key[j];
-                count = 0;
-
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    temp[i] = char_message_left[i];
-                    int_temp[i] = int_message_left[i];
-                }
-
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    if (count == (msglength / 2 - 1))
-                    {
-                        int_message_left[i] = int_message_left[i] ^ int_keys_letter;
-                        int_message_left[i] = int_message_right[i] ^ int_message_left[i];
-                    }
-                    else
-                    {
-                        int_message_left[i] = int_message_left[i] ^ 0;
-                        int_message_left[i] = int_message_left[i] ^ int_message_right[i];
-                    }
-                    char_message_left[i] = (char)int_message_left[i];
-                    count++;
-                }
-
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    char_message_right[i] = temp[i];
-                    int_message_right[i] = int_temp[i];
-                }
-                for (int i = 0; i < msglength / 2; i++)
-                {
-                    char_message[i] = char_message_left[i];
-                    char_message[i + (msglength / 2)] = char_message_right[i];
-                    int_message[i] = int_message_left[i];
-                    int_message[i + (msglength / 2)] = int_message_right[i];
-                }
-            }
-            message.Password = "";
-            foreach (char letter in char_message_left)
-            {
-                message.Password += letter;
-            }
-            foreach (char letter in char_message_right)
-            {
-                message.Password += letter;
-            }
+            AttendingDoc attendingDoc = new AttendingDoc();
+            attendingDoc.Attending_Doc_FIO = db.Users.OrderByDescending(p => p.Id).First(p => p.RoleId == 2).UserName;
+            attendingDoc.Password = db.Users.OrderByDescending(p => p.Id).First(p => p.RoleId == 2).HashedPassword;
+            db.AttendingDocs.Add(attendingDoc);
+            await db.SaveChangesAsync();
+            return RedirectToAction("AttendDocs");
         }
-        ///
 
         public IActionResult AttendDocs(string search, SortState sortOrder=SortState.Null, int page = 0)
         {
@@ -511,7 +255,9 @@ namespace HospiFication.Controllers
         public async Task<IActionResult> DeleteAttend(int? id)
         {
             AttendingDoc attendingDoc = await db.AttendingDocs.FirstOrDefaultAsync(p => p.AttendingDocID == id);
+            User user = await db.Users.FirstOrDefaultAsync(p => p.UserName.Equals(attendingDoc.Attending_Doc_FIO));
             db.AttendingDocs.Remove(attendingDoc);
+            db.Users.Remove(user);
             await db.SaveChangesAsync();
             return RedirectToAction("AttendDocs");
         }
@@ -528,7 +274,9 @@ namespace HospiFication.Controllers
         public async Task<IActionResult> DeleteEmerge(int? id)
         {
             EmergencyDoc emergencyDoc = await db.EmergencyDocs.FirstOrDefaultAsync(p => p.EmergencyDocID == id);
+            User user = await db.Users.FirstOrDefaultAsync(p => p.UserName.Equals(emergencyDoc.Emergency_Doc_FIO));
             db.EmergencyDocs.Remove(emergencyDoc);
+            db.Users.Remove(user);
             await db.SaveChangesAsync();
             return RedirectToAction("EmergeDocs");
         }
@@ -556,7 +304,7 @@ namespace HospiFication.Controllers
         public IActionResult AddRelative()
         {
             Relative relative = new Relative();
-            relative.PatientID = db.Patients.OrderByDescending(p => p.PatientID).FirstOrDefault(p => p.EmergencyDocID.Equals(UserIdWithThisRole)).PatientID;
+            relative.PatientID = db.Patients.OrderByDescending(p => p.PatientID).FirstOrDefault(p => p.EmergencyDocID.Equals(DocIdWithThisRole)).PatientID;
             return View(relative);
         }
 
@@ -579,81 +327,71 @@ namespace HospiFication.Controllers
         public IActionResult Patients(string search, string datesearch, string extracted, int page=0, SortState sortOrder = SortState.Null)
         {
             int pageSize = 5;
-            if (Role == "Лечащий врач")
+            IEnumerable<Patient> patients = new List<Patient>();
+            if ((userdatapatients.page != 0) & (page == 0))
+                page = userdatapatients.page;
+            if ((userdatapatients.sortstate != SortState.Null) & (sortOrder == SortState.Null))
+                sortOrder = userdatapatients.sortstate;
+            if ((!String.IsNullOrEmpty(userdatapatients.search)) & (String.IsNullOrEmpty(search)))
+                search = userdatapatients.search;
+            if ((!String.IsNullOrEmpty(userdatapatients.datesearch)) & (String.IsNullOrEmpty(datesearch)))
+                datesearch = userdatapatients.datesearch;
+            if ((!String.IsNullOrEmpty(userdatapatients.filter)) & (String.IsNullOrEmpty(extracted)))
+                extracted = userdatapatients.filter;
+            List<string> extractHelps = new List<string>();
+            extractHelps.Insert(0, "Все");
+            foreach (Patient p in db.Patients)
             {
-                IEnumerable<Patient> patients = new List<Patient>();
-                if ((userdatapatients.page != 0) & (page == 0))
-                    page = userdatapatients.page;
-                if ((userdatapatients.sortstate != SortState.Null) & (sortOrder == SortState.Null))
-                    sortOrder = userdatapatients.sortstate;
-                if ((!String.IsNullOrEmpty(userdatapatients.search)) & (String.IsNullOrEmpty(search)))
-                    search = userdatapatients.search;
-                if ((!String.IsNullOrEmpty(userdatapatients.datesearch)) & (String.IsNullOrEmpty(datesearch)))
-                    datesearch = userdatapatients.datesearch;
-                if ((!String.IsNullOrEmpty(userdatapatients.filter)) & (String.IsNullOrEmpty(extracted)))
-                    extracted = userdatapatients.filter;
-                List<string> extractHelps = new List<string>();
-                extractHelps.Insert(0, "Все");
-                foreach (Patient p in db.Patients)
-                {
-                    extractHelps.Add(p.Extracted);
-                }
-                extractHelps = extractHelps.Distinct().ToList();
-                patients = db.Patients.Where(p => p.AttendingDocID.Equals(UserIdWithThisRole)).ToList();
+                extractHelps.Add(p.Extracted);
+            }
+            extractHelps = extractHelps.Distinct().ToList();
+            patients = db.Patients.Where(p => p.AttendingDocID.Equals(DocIdWithThisRole)).ToList();
 
-                if (extracted != null && extracted != "Все")
-                {
-                    patients = patients.Where(e => e.Extracted.Equals(extracted));
-                }
-                if (!String.IsNullOrEmpty(search)&&search!="Все")
-                {
-                    patients = patients.Where(s => s.FIO.Contains(search));
-                }
-                if ((!String.IsNullOrEmpty(datesearch) && datesearch != "Все"))
-                {
-                    patients = patients.Where(d => d.EntranceDate.Equals(datesearch));
-                }
-                ViewData["IDSort"] = sortOrder == SortState.IDAsc ? SortState.IDDesc : SortState.IDAsc;
-                ViewData["FIOSort"] = sortOrder == SortState.FIOAsc ? SortState.FIODesc : SortState.FIOAsc;
-                ViewData["ExtraSort"] = sortOrder == SortState.ExtractedAsc ? SortState.ExtractedDesc : SortState.ExtractedAsc;
+            if (extracted != null && extracted != "Все")
+            {
+                patients = patients.Where(e => e.Extracted.Equals(extracted));
+            }
+            if (!String.IsNullOrEmpty(search)&&search!="Все")
+            {
+                patients = patients.Where(s => s.FIO.Contains(search));
+            }
+            if ((!String.IsNullOrEmpty(datesearch) && datesearch != "Все"))
+            {
+                patients = patients.Where(d => d.EntranceDate.Equals(datesearch));
+            }
+            ViewData["IDSort"] = sortOrder == SortState.IDAsc ? SortState.IDDesc : SortState.IDAsc;
+            ViewData["FIOSort"] = sortOrder == SortState.FIOAsc ? SortState.FIODesc : SortState.FIOAsc;
+            ViewData["ExtraSort"] = sortOrder == SortState.ExtractedAsc ? SortState.ExtractedDesc : SortState.ExtractedAsc;
 
-                patients = sortOrder switch
-                {
-                    SortState.IDAsc => patients.OrderBy(s => s.PatientID),
-                    SortState.IDDesc => patients.OrderByDescending(s => s.PatientID),
-                    SortState.FIOAsc => patients.OrderBy(s => s.FIO),
-                    SortState.FIODesc => patients.OrderByDescending(s => s.FIO),
-                    SortState.ExtractedAsc => patients.OrderBy(s => s.Extracted),
-                    SortState.ExtractedDesc => patients.OrderByDescending(s => s.Extracted),
-                    _ => patients.OrderByDescending(s => s.Extracted),
-                };
-                var count = patients.Count();
-                patients = patients.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            patients = sortOrder switch
+            {
+                SortState.IDAsc => patients.OrderBy(s => s.PatientID),
+                SortState.IDDesc => patients.OrderByDescending(s => s.PatientID),
+                SortState.FIOAsc => patients.OrderBy(s => s.FIO),
+                SortState.FIODesc => patients.OrderByDescending(s => s.FIO),
+                SortState.ExtractedAsc => patients.OrderBy(s => s.Extracted),
+                SortState.ExtractedDesc => patients.OrderByDescending(s => s.Extracted),
+                _ => patients.OrderByDescending(s => s.Extracted),
+            };
+            var count = patients.Count();
+            patients = patients.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-                PageViewModel pageViewModel = new PageViewModel(count, page, pageSize);
+            PageViewModel pageViewModel = new PageViewModel(count, page, pageSize);
                 
-                CommonList common = new CommonList
-                {
-                    PageViewModel = pageViewModel,
-                    Patients = patients,
-                    Extracteds = new SelectList(extractHelps)
-                };
-                userdatapatients.page = page;
-                userdatapatients.sortstate = sortOrder;
-                userdatapatients.datesearch = datesearch;
-                userdatapatients.filter = extracted;
-                userdatapatients.search = search;
-                return View(common);
-            }
-            else
+            CommonList common = new CommonList
             {
-                CommonList common = new CommonList
-                {
-                    Patients = db.Patients
-                };
-                return View(common);
-            }
+                PageViewModel = pageViewModel,
+                Patients = patients,
+                Extracteds = new SelectList(extractHelps)
+            };
+            userdatapatients.page = page;
+            userdatapatients.sortstate = sortOrder;
+            userdatapatients.datesearch = datesearch;
+            userdatapatients.filter = extracted;
+            userdatapatients.search = search;
+            return View(common);
         }
+
         public IActionResult Relatives(int? id)
         {
             CommonList common = new CommonList
@@ -686,21 +424,21 @@ namespace HospiFication.Controllers
         public async Task <IActionResult> AddNotification()
         {
             Notification notificatio = new Notification();
-            notificatio.ExtractionID=db.Extractions.OrderByDescending(p=>p.ExtractionID).First(p=>p.AttendingDocID.Equals(UserIdWithThisRole)).ExtractionID;
-            notificatio.PatientID = db.Extractions.FirstOrDefault(p => p.ExtractionID.Equals(notificatio.ExtractionID)).PatientID;
-            Relative[] relative = db.Relatives.Where(p => p.PatientID.Equals(notificatio.PatientID)).ToArray();
-            Patient patient = db.Patients.FirstOrDefault(p => p.PatientID.Equals(notificatio.PatientID));
+            notificatio.ExtractionID=db.Extractions.OrderByDescending(p=>p.ExtractionID).First(p=>p.AttendingDocID.Equals(DocIdWithThisRole)).ExtractionID;
+            notificatio.PID = db.Extractions.FirstOrDefault(p => p.ExtractionID.Equals(notificatio.ExtractionID)).PatientID;
+            Relative[] relative = db.Relatives.Where(p => p.PatientID.Equals(notificatio.PID)).ToArray();
+            Patient patient = db.Patients.FirstOrDefault(p => p.PatientID.Equals(notificatio.PID));
             if (relative.Length != 0)
             {
                 foreach (Relative p in relative)
                 {
                     Notification notification = new Notification();
-                    notification.ExtractionID = db.Extractions.OrderByDescending(p => p.ExtractionID).First(p => p.AttendingDocID.Equals(UserIdWithThisRole)).ExtractionID;
-                    notification.PatientID = db.Extractions.FirstOrDefault(p => p.ExtractionID.Equals(notification.ExtractionID)).PatientID;
-                    notification.RelativeID = p.RelativeID;
+                    notification.ExtractionID = db.Extractions.OrderByDescending(p => p.ExtractionID).First(p => p.AttendingDocID.Equals(DocIdWithThisRole)).ExtractionID;
+                    notification.PID = db.Extractions.FirstOrDefault(p => p.ExtractionID.Equals(notification.ExtractionID)).PatientID;
+                    notification.RID = p.RelativeID;
                     notification.NotificationText = $"Ваш(а) родственник(ца) {patient.FIO} будет выписан(а) сегодня в 11:00";
-                    string phone = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RelativeID)).RelativePhone;
-                    string mail = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RelativeID)).RelativeMail;
+                    string phone = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativePhone;
+                    string mail = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativeMail;
                     NotifyByMail(notification, mail);
                     NotifyByPhone(notification, phone);
                     db.Notifications.Add(notification);
@@ -743,7 +481,7 @@ namespace HospiFication.Controllers
         {
             Role = "";
             UserName = "";
-            UserIdWithThisRole = 0;
+            DocIdWithThisRole = 0;
             return RedirectToAction("Login");
         }
     }

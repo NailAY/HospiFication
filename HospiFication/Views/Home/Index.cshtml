@@ -11,7 +11,7 @@
 	<h2>Пользователь: @HospiFication.Controllers.HomeController.UserName</h2>
 	@if (HospiFication.Controllers.HomeController.Role != "Администратор")
 	{
-		<h2>IDПользователя: @HospiFication.Controllers.HomeController.UserIdWithThisRole</h2>
+		<h2>IDПользователя: @HospiFication.Controllers.HomeController.DocIdWithThisRole</h2>
 	}
 	
 
@@ -29,9 +29,9 @@
 	}
 	@if (HospiFication.Controllers.HomeController.Role=="Администратор")
 	{
-		<a asp-action="AddAttendDoc"> Добавить нового лечащего врача    </a>
+		<a asp-action="AddAttendDocUser"> Добавить нового лечащего врача    </a>
 		<a asp-action="AttendDocs"> Лечащие врачи    </a>
-		<a asp-action="AddEmergeDoc"> Добавить нового врача приёмного отделения    </a>
+		<a asp-action="AddEmergeDocUser"> Добавить нового врача приёмного отделения    </a>
 		<a asp-action="EmergeDocs"> Врачи приёмного отделения    </a>
 	}
 	

@@ -1,0 +1,32 @@
+﻿@model HospiFication.Models.User
+
+@{
+	ViewBag.Title = "Добавление нового врача приёмного отделения";
+}
+
+    <form asp-action="AddEmergeDocUser" asp-controller="home" method="post" enctype="multipart/form-data">
+        
+        <div class="form-group">
+            <label asp-for="RoleId" hidden="true" class="control-label">Роль ID</label>
+            <input type="text"  asp-for="RoleId" hidden="true" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Role" hidden="true" class="control-label">Роль</label>
+            <input type="text"  asp-for="Role" hidden="true" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="UserName" class="control-label">ФИО врача приёмного отделения</label>
+            <input type="text" asp-for="UserName" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="HashedPassword" class="control-label">Пароль</label>
+            <input type="text" asp-for="HashedPassword" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Отправить" class="btn btn-default" />
+        </div>
+        <div class="form-group">
+            <a asp-action="EmergeDocs" class="btn btn-primary">Назад</a>
+        </div>
+    </form>
