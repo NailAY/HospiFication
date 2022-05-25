@@ -1,0 +1,121 @@
+﻿@model HospiFication.Models.CommonList
+@using HospiFication.Models
+@{
+    ViewData["Title"] = "Пациенты";
+}
+    <style>
+        @@font-face {
+            font-family: 'FontAwesome';
+            src: url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2') format('woff2'), 
+            url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff') format('woff'), 
+            url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal
+        }
+ 
+        .glyphicon {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale
+        }
+ 
+        .glyphicon-chevron-right:before {
+            content: "\f054";
+        }
+ 
+        .glyphicon-chevron-left:before {
+            content: "\f053";
+        }
+    </style>
+<h1>Пациенты</h1>
+
+
+<form asp-controller="Home" asp-action="Patients">
+    <p>
+        ФИО пациента: <input type="text" name="search" value="@HospiFication.Controllers.HomeController.userdatapatients.search"  />
+        Дата госпитализации: <input type="text" name="datesearch" value="@HospiFication.Controllers.HomeController.userdatapatients.datesearch" />
+        Выписан/Не выписан: <select name="extracted" asp-items="Model.Extracteds" value=@HospiFication.Controllers.HomeController.userdatapatients.filter>
+        <option value = "@HospiFication.Controllers.HomeController.userdatapatients.filter" selected>@HospiFication.Controllers.HomeController.userdatapatients.filter</option>
+    </select>
+
+        <input type="submit" value="Фильтр" asp-route-page="1" />
+    </p>
+            
+</form>
+
+<table class="table" border="1" cellspacing="0" bgcolor="#e6f1fc">
+    <tr>
+        <th>
+            <a asp-action="Patients" asp-route-page="1" asp-route-sortOrder="@ViewBag.IDSort">
+                ID пациента
+            </a>
+        </th>
+        <th>            
+            <a asp-action="Patients" asp-route-page="1" asp-route-sortOrder="@ViewBag.FIOSort">
+                ФИО пациента
+            </a>
+        </th>
+        <th>Дата рождения пациента</th>
+        <th>ID Лечащего врача</th>
+        <th>Симптомы</th>
+        <th>            
+            <a asp-action="Patients" asp-route-page="1" asp-route-sortOrder="@ViewBag.ExtraSort">
+                Выписан
+            </a>
+        </th>
+        <th>Дата госпитализации</th>
+        <th>ID врача приёмного отделения</th>
+    </tr>
+
+    @foreach (Patient p in Model.Patients)
+    {
+        <tr>
+            <td>@p.PatientID</td>
+            <td>@p.FIO</td>
+            <td>@p.BirthDay</td>
+            <td>@p.AttendingDocID</td>
+            <td>@p.Symptoms</td>
+            <td>@p.Extracted</td>
+            <td>@p.EntranceDate</td>
+            <td>@p.EmergencyDocID</td>
+            @if (p.Extracted=="Не выписан")
+            {
+                <td>
+                <a asp-action="Extract" asp-controller="Home" asp-route-id="@p.PatientID">Выписать</a>|
+                </td>
+            }
+            @if (p.Extracted=="Выписан")
+            {
+                <td>
+                <a asp-action="Extractions" asp-controller="Home" asp-route-id="@p.PatientID">Выписка</a>|
+                </td>
+            }
+            <td>
+            <a asp-action="Relatives" asp-controller="Home" asp-route-id="@p.PatientID">Родственники</a>|
+            </td>
+            
+        </tr>
+     }
+    </table>
+    @if (Model.PageViewModel.HasPreviousPage)
+{
+    <a asp-action="Patients"
+       asp-route-page="@(Model.PageViewModel.PageNumber - 1)"
+       class="btn btn-outline-dark">
+        <i class="glyphicon glyphicon-chevron-left"></i>
+        Назад
+    </a>
+}
+    @if (Model.PageViewModel.HasNextPage)
+{
+    <a asp-action="Patients"
+       asp-route-page="@(Model.PageViewModel.PageNumber + 1)"
+       class="btn btn-outline-dark">
+        Вперед
+        <i class="glyphicon glyphicon-chevron-right"></i>
+    </a>
+}
+

@@ -1,0 +1,33 @@
+﻿@model HospiFication.Models.CommonList
+@using HospiFication.Models
+@{
+    ViewData["Title"] = "Уведомления";
+}
+
+<h1>Уведомления</h1>
+
+<table class="table" border="1" cellspacing="0" bgcolor="#e6f1fc">
+    <tr>
+        <th>ID уведомления</th>
+        <th>ID выписки</th>
+        <th>ID пациента</th>
+        <th>ID родственника</th>
+        <th>Текст уведомления</th>
+    </tr>
+
+    @foreach (Notification p in Model.Notifications)
+    {
+        <tr>
+            <td>@p.NotificationId</td>
+            <td>@p.ExtractionID</td>
+            <td>@p.PatientID</td>
+            <td>@p.RelativeID</td>
+            <td>@p.NotificationText</td>
+        </tr>
+     }
+
+    </table>
+    <div class="form-group">
+            <a asp-action="Patients" class="btn btn-primary">Назад</a>
+    </div>
+

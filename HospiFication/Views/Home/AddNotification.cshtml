@@ -1,0 +1,31 @@
+﻿@model HospiFication.Models.Notification
+@{
+	ViewBag.Title = "Уведомить";
+}
+
+    <form asp-action="AddNotification" asp-controller="home" method="post" enctype="multipart/form-data">
+        
+        <div class="form-group">
+            <label asp-for="ExtractionID" hidden="true" class="control-label">ID выписки</label>
+            <input type="text" asp-for="ExtractionID" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PatientID" hidden="true" class="control-label">ID пациента</label>
+            <input type="text" asp-for="PatientID" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="RelativeID" class="control-label" hidden="true" >ID родственника</label>
+            <input type="text" asp-for="RelativeID" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="NotificationText" class="control-label">Текст уведомления</label>
+            <input type="text" asp-for="NotificationText" class="form-control" />
+        </div>
+        
+        <div class="form-group">
+            <input type="submit" value="Отправить" class="btn btn-default" />
+        </div>
+    </form>

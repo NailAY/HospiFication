@@ -1,0 +1,30 @@
+﻿@model HospiFication.Models.EmergencyDoc
+@{
+	ViewBag.Title = "Удаление врача приёмного отделения";
+}
+
+<div>
+    <dl class="dl-horizontal">
+
+        <dt>ID</dt>
+        <dd>
+            @Html.DisplayFor(model => model.EmergencyDocID)
+        </dd>
+
+        <dt>ФИО</dt>
+        <dd>
+            @Html.DisplayFor(model => model.Emergency_Doc_FIO)
+        </dd>
+
+    </dl>
+	<div>
+		<form asp-controller="Home" asp-action="DeleteEmerge" method="post">
+			<div class="form-group">
+				<input type="submit" class="btn btn-default" value="Удалить" />
+			</div>
+		</form>
+        <div class="form-group">
+            <a asp-action="EmergeDocs" class="btn btn-primary">Назад</a>
+        </div>
+	</div>
+</div>

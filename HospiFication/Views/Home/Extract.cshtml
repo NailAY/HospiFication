@@ -1,0 +1,34 @@
+﻿@model HospiFication.Models.Extraction
+@{
+	ViewBag.Title = "Выписать";
+}
+
+    <form asp-action="Extract" asp-controller="home" method="post" enctype="multipart/form-data">
+        
+        <div class="form-group">
+            <label asp-for="ExtractionDate" hidden="true" class="control-label">Дата выписки</label>
+            <input type="text" asp-for="ExtractionDate" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PatientID" hidden="true" class="control-label">ID пациента</label>
+            <input type="text" asp-for="PatientID" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AttendingDocID" class="control-label" hidden="true" >ID лечащего врача</label>
+            <input type="text" asp-for="AttendingDocID" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Conclusion" class="control-label">Заключение</label>
+            <input type="text" asp-for="Conclusion" class="form-control" />
+        </div>
+        
+        <div class="form-group">
+            <input type="submit" value="Отправить" class="btn btn-default" />
+        </div>
+    </form>
+        <div class="form-group">
+            <a asp-action="Patients" class="btn btn-primary">Назад</a>
+        </div>

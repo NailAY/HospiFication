@@ -1,0 +1,93 @@
+﻿@model HospiFication.Models.CommonList
+@using HospiFication.Models
+@{
+    ViewData["Title"] = "Лечащие врачи";
+}
+
+@{
+    ViewData["Title"] = "Лечащие врачи";
+}
+    <style>
+        @@font-face {
+            font-family: 'FontAwesome';
+            src: url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2') format('woff2'), 
+            url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff') format('woff'), 
+            url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal
+        }
+ 
+        .glyphicon {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale
+        }
+ 
+        .glyphicon-chevron-right:before {
+            content: "\f054";
+        }
+ 
+        .glyphicon-chevron-left:before {
+            content: "\f053";
+        }
+    </style>
+
+<h1>Лечащие врачи</h1>
+
+
+<form asp-controller="Home" asp-action="AttendDocs">
+    <p>
+        ФИО врача: <input type="text" name="search" value="@HospiFication.Controllers.HomeController.userdataattendingdocs.search" />
+        <input type="submit" value="Фильтр" asp-route-page="1" />
+    </p>
+</form>
+
+<table class="table" border="1" cellspacing="0" bgcolor="#e6f1fc">
+    <tr>
+        <th>
+            <a asp-action="AttendDocs" asp-route-page="1" asp-route-sortOrder="@ViewBag.IDSort">
+                ID Врача
+            </a>
+        </th>
+        <th>
+            <a asp-action="AttendDocs" asp-route-page="1" asp-route-sortOrder="@ViewBag.FIOSort">
+                ФИО лечащего врача
+            </a>
+        </th>
+        <th>Пароль (в зашифрованном виде)</th>
+    </tr>
+
+    @foreach (AttendingDoc p in Model.AttendingDocs)
+    {
+        <tr>
+            <td>@p.AttendingDocID</td>
+            <td>@p.Attending_Doc_FIO</td>
+            <td>@p.Password</td>
+            <td>
+                <a asp-action="DeleteAttend" asp-controller="Home" asp-route-id="@p.AttendingDocID">Удалить</a>|
+            </td>
+        </tr>
+     }
+    </table>
+@if (Model.PageViewModel.HasPreviousPage)
+{
+    <a asp-action="AttendDocs"
+       asp-route-page="@(Model.PageViewModel.PageNumber - 1)"
+       class="btn btn-outline-dark">
+        <i class="glyphicon glyphicon-chevron-left"></i>
+        Назад
+    </a>
+}
+    @if (Model.PageViewModel.HasNextPage)
+{
+    <a asp-action="AttendDocs"
+       asp-route-page="@(Model.PageViewModel.PageNumber + 1)"
+       class="btn btn-outline-dark">
+        Вперед
+        <i class="glyphicon glyphicon-chevron-right"></i>
+    </a>
+}
+

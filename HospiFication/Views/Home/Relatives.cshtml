@@ -1,0 +1,35 @@
+﻿@model HospiFication.Models.CommonList
+@using HospiFication.Models
+@{
+    ViewData["Title"] = "Родственники";
+}
+
+<h1>Родственники</h1>
+
+<table class="table" border="1" cellspacing="0" bgcolor="#e6f1fc">
+    <tr>
+        <th>ID родственника</th>
+        <th>ID пациента</th>
+        <th>ФИО родственника</th>
+        <th>Телефон родственника</th>
+        <th>Почта родственника</th>
+        <th>Степень родства</th>
+
+    </tr>
+
+    @foreach (Relative p in Model.Relatives)
+    {
+        <tr>
+            <td>@p.RelativeID</td>
+            <td>@p.PatientID</td>
+            <td>@p.RelativeFIO</td>
+            <td>@p.RelativePhone</td>
+            <td>@p.RelativeMail</td>
+            <td>@p.WhatsRelative</td>
+        </tr>
+     }
+    </table>
+    <div class="form-group">
+            <a asp-action="Patients" class="btn btn-primary">Назад</a>
+    </div>
+

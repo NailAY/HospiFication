@@ -1,0 +1,39 @@
+﻿@model HospiFication.Models.CommonList
+@using HospiFication.Models
+@{
+    ViewData["Title"] = "Выписка";
+}
+
+<h1>Выписка</h1>
+
+<table class="table" border="1" cellspacing="0" bgcolor="#e6f1fc">
+    <tr>
+        <th>ID выписки</th>
+        <th>Дата выписки</th>
+        <th>ID пациента</th>
+        <th>ID Лечащего врача</th>
+        <th>Заключение</th>
+    </tr>
+
+    @foreach (Extraction p in Model.Extractions)
+    {
+        <tr>
+            <td>@p.ExtractionID</td>
+            <td>@p.ExtractionDate</td>
+            <td>@p.PatientID</td>
+            <td>@p.AttendingDocID</td>
+            <td>@p.Conclusion</td>
+
+            <td>
+            <a asp-action="Notifications" asp-controller="Home" asp-route-id="@p.ExtractionID">Уведомления</a>|
+            </td>
+            
+        </tr>
+     }
+    </table>
+        <div class="form-group">
+            <a asp-action="Patients" class="btn btn-primary">Назад</a>
+        </div>
+    
+
+
