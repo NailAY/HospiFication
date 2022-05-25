@@ -1,0 +1,19 @@
+﻿@model HospiFication.Models.AttendingDoc
+@{
+    ViewBag.Title = "Изменение пароля";
+}
+<form asp-action="EditAttendDocPass" asp-controller="home" asp-route-id="@Model.AttendingDocID">
+    <div class="form-group">
+        <input type="number" asp-for="AttendingDocID" hidden="true"  class="form-control" />
+        <label asp-for="Attending_Doc_FIO" class="control-label">ФИО Лечащего врача</label>
+        <label asp-for="Attending_Doc_FIO" class="control-label">@Model.Attending_Doc_FIO</label>
+        <input type="text" asp-for="Attending_Doc_FIO" hidden="true"  class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Password" class="control-label">Введите новый пароль</label>
+        <input type="text" asp-for="Password" class="form-control" />
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Сохранить" class="btn btn-default" />
+    </div>
+</form>

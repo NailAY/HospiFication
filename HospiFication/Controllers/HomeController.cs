@@ -102,7 +102,7 @@ namespace HospiFication.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
 
-
+        [Authorize(Roles = "Администратор")]
         public IActionResult AddAttendDocUser()
         {
             User user = new User();
@@ -113,6 +113,7 @@ namespace HospiFication.Controllers
 
         //===========================================
         [HttpPost]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> AddAttendDocUser(User user)
         {
             db.Users.Add(user);
@@ -120,7 +121,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("AddAttendDoc");
         }
 
-
+        [Authorize(Roles = "Администратор")]
         public IActionResult AddEmergeDocUser()
         {
             User user = new User();
@@ -129,6 +130,7 @@ namespace HospiFication.Controllers
             return View(user);
         }
         [HttpPost]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> AddEmergeDocUser(User user)
         {
             db.Users.Add(user);
@@ -137,8 +139,7 @@ namespace HospiFication.Controllers
         }
 
         ////////////////////////////////////////////////////
-
-        [HttpPost]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> AddEmergeDoc()
         {
             EmergencyDoc emergencyDoc = new EmergencyDoc();
@@ -148,6 +149,7 @@ namespace HospiFication.Controllers
             await db.SaveChangesAsync();
             return RedirectToAction("EmergeDocs");
         }
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> AddAttendDoc()
         {
             AttendingDoc attendingDoc = new AttendingDoc();
@@ -158,6 +160,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("AttendDocs");
         }
 
+        [Authorize(Roles = "Администратор")]
         public IActionResult AttendDocs(string search, SortState sortOrder=SortState.Null, int page = 0)
         {
             int pageSize = 5;
@@ -199,6 +202,7 @@ namespace HospiFication.Controllers
             return View(common);
         }
 
+        [Authorize(Roles = "Администратор")]
         public IActionResult EmergeDocs(string search, SortState sortOrder = SortState.Null, int page = 0)
         {
             int pageSize = 5;
@@ -245,6 +249,7 @@ namespace HospiFication.Controllers
 
         [HttpGet]
         [ActionName("DeleteAttend")]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> ConfirmDeleteAttend(int? id)
         {
             AttendingDoc attendingDoc = await db.AttendingDocs.FirstOrDefaultAsync(p => p.AttendingDocID == id);
@@ -252,6 +257,7 @@ namespace HospiFication.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> DeleteAttend(int? id)
         {
             AttendingDoc attendingDoc = await db.AttendingDocs.FirstOrDefaultAsync(p => p.AttendingDocID == id);
@@ -264,6 +270,7 @@ namespace HospiFication.Controllers
 
         [HttpGet]
         [ActionName("DeleteEmerge")]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> ConfirmDeleteEmerge(int? id)
         {
             EmergencyDoc emergencyDoc = await db.EmergencyDocs.FirstOrDefaultAsync(p => p.EmergencyDocID == id);
@@ -271,6 +278,7 @@ namespace HospiFication.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> DeleteEmerge(int? id)
         {
             EmergencyDoc emergencyDoc = await db.EmergencyDocs.FirstOrDefaultAsync(p => p.EmergencyDocID == id);
@@ -281,7 +289,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("EmergeDocs");
         }
 
-
+        [Authorize(Roles = "Врач приёмного отделения")]
         public IActionResult AddPatient()
         {
             var attendingdocs = db.AttendingDocs.Select(x => new { ID = x.AttendingDocID, FIO = x.Attending_Doc_FIO }).ToArray();
@@ -294,6 +302,7 @@ namespace HospiFication.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Врач приёмного отделения")]
         public async Task<IActionResult> AddPatient(Patient patient)
         {
             db.Patients.Add(patient);
@@ -301,6 +310,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("AddRelative");
         }
 
+        [Authorize(Roles = "Врач приёмного отделения")]
         public IActionResult AddRelative()
         {
             Relative relative = new Relative();
@@ -309,6 +319,7 @@ namespace HospiFication.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Врач приёмного отделения")]
         public async Task<IActionResult> SaveAndAddRelative(Relative relative)
         {
             db.Relatives.Add(relative);
@@ -316,6 +327,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("AddRelative");
         }
         [HttpPost]
+        [Authorize(Roles = "Врач приёмного отделения")]
         public async Task<IActionResult> SaveRelative(Relative relative)
         {
             db.Relatives.Add(relative);
@@ -323,7 +335,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("Index");
         }
 
-
+        [Authorize(Roles = "Лечащий врач")]
         public IActionResult Patients(string search, string datesearch, string extracted, int page=0, SortState sortOrder = SortState.Null)
         {
             int pageSize = 5;
@@ -392,6 +404,7 @@ namespace HospiFication.Controllers
             return View(common);
         }
 
+        [Authorize(Roles = "Лечащий врач")]
         public IActionResult Relatives(int? id)
         {
             CommonList common = new CommonList
@@ -402,6 +415,7 @@ namespace HospiFication.Controllers
 
         }
 
+        [Authorize(Roles = "Лечащий врач")]
         public IActionResult Extract(int id)
         {
             Extraction extraction = new Extraction();
@@ -411,6 +425,7 @@ namespace HospiFication.Controllers
             return View(extraction);
         }
         [HttpPost]
+        [Authorize(Roles = "Лечащий врач")]
         public async Task<IActionResult> Extract(Extraction extraction)
         {
             db.Extractions.Add(extraction);
@@ -421,6 +436,7 @@ namespace HospiFication.Controllers
             return RedirectToAction("AddNotification");
         }
 
+        [Authorize(Roles = "Лечащий врач")]
         public async Task <IActionResult> AddNotification()
         {
             Notification notificatio = new Notification();
@@ -449,15 +465,17 @@ namespace HospiFication.Controllers
             return RedirectToAction("Patients");
         }
 
+        [Authorize(Roles = "Лечащий врач")]
         static void NotifyByMail(Notification notification, string mail)
         {
             
         }
+        [Authorize(Roles = "Лечащий врач")]
         static void NotifyByPhone(Notification notification, string phone)
         {
 
         }
-
+        [Authorize(Roles = "Лечащий врач")]
         public IActionResult Extractions(int? id)
         {
             CommonList common = new CommonList
@@ -467,7 +485,7 @@ namespace HospiFication.Controllers
             return View(common);
 
         }
-
+        [Authorize(Roles = "Лечащий врач")]
         public IActionResult Notifications(int? id)
         {
             CommonList common = new CommonList
@@ -477,12 +495,62 @@ namespace HospiFication.Controllers
             return View(common);
 
         }
+
+        [Authorize(Roles = "Администратор, Лечащий врач, Врач приёмного отделения")]
         public IActionResult Logout()
         {
             Role = "";
             UserName = "";
             DocIdWithThisRole = 0;
             return RedirectToAction("Login");
+        }
+
+        [Authorize(Roles = "Администратор")]
+        public async Task<IActionResult> EditAttendDocPass(int? id)
+        {
+            if (id != null)
+            {
+                AttendingDoc attendingDoc = await db.AttendingDocs.FirstOrDefaultAsync(p => p.AttendingDocID == id);
+                if (attendingDoc != null)
+                    return View(attendingDoc);
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Администратор")]
+        public async Task<IActionResult> EditAttendDocPass(AttendingDoc attendingDoc)
+        {
+            User user = db.Users.FirstOrDefault(p => p.UserName == attendingDoc.Attending_Doc_FIO);
+            user.HashedPassword = attendingDoc.Password;
+            db.AttendingDocs.Update(attendingDoc);
+            db.Users.Update(user);
+            await db.SaveChangesAsync();
+            return RedirectToAction("AttendDocs");
+        }
+
+        [Authorize(Roles = "Администратор")]
+        public async Task<IActionResult> EditEmergeDocPass(int? id)
+        {
+            if (id != null)
+            {
+                EmergencyDoc emergencyDoc = await db.EmergencyDocs.FirstOrDefaultAsync(p => p.EmergencyDocID == id);
+                if (emergencyDoc != null)
+                    return View(emergencyDoc);
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Администратор")]
+        public async Task<IActionResult> EditEmergeDocPass(EmergencyDoc emergencyDoc)
+        {
+            User user = db.Users.FirstOrDefault(p => p.UserName == emergencyDoc.Emergency_Doc_FIO);
+            user.HashedPassword = emergencyDoc.Password;
+            db.EmergencyDocs.Update(emergencyDoc);
+            db.Users.Update(user);
+            await db.SaveChangesAsync();
+            return RedirectToAction("EmergeDocs");
         }
     }
 }
