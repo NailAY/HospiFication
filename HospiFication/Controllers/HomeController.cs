@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace HospiFication.Controllers
 {
@@ -67,11 +69,19 @@ namespace HospiFication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginModel model)
         {
+
             if (ModelState.IsValid)
             {
+                string hashedpassword = model.Password;
+                if (db.Users.FirstOrDefault(s => s.UserName == model.UserName) != null)
+                {
+                    byte[] salt = new byte[128 / 8];
+                    salt = db.Users.FirstOrDefault(s => s.UserName == model.UserName).salt;
+                    hashedpassword=Hashing(hashedpassword, salt);
+                } 
                 User user = await db.Users
                     .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.UserName == model.UserName && u.HashedPassword == model.Password);
+                    .FirstOrDefaultAsync(u => u.UserName == model.UserName && u.HashedPassword == hashedpassword);
                 if (user != null)
                 {
                     await Authenticate(user); // аутентификация
@@ -116,6 +126,12 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> AddAttendDocUser(User user)
         {
+            user.salt = new byte[128 / 8];
+            using (var rngCsp = new RNGCryptoServiceProvider())
+            {
+                rngCsp.GetNonZeroBytes(user.salt);
+            }
+            user.HashedPassword=Hashing(user.HashedPassword, user.salt);
             db.Users.Add(user);
             await db.SaveChangesAsync();
             return RedirectToAction("AddAttendDoc");
@@ -133,6 +149,12 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> AddEmergeDocUser(User user)
         {
+            user.salt = new byte[128 / 8];
+            using (var rngCsp = new RNGCryptoServiceProvider())
+            {
+                rngCsp.GetNonZeroBytes(user.salt);
+            }
+            user.HashedPassword=Hashing(user.HashedPassword, user.salt);
             db.Users.Add(user);
             await db.SaveChangesAsync();
             return RedirectToAction("AddEmergeDoc");
@@ -522,6 +544,12 @@ namespace HospiFication.Controllers
         public async Task<IActionResult> EditAttendDocPass(AttendingDoc attendingDoc)
         {
             User user = db.Users.FirstOrDefault(p => p.UserName == attendingDoc.Attending_Doc_FIO);
+            user.salt = new byte[128 / 8];
+            using (var rngCsp = new RNGCryptoServiceProvider())
+            {
+                rngCsp.GetNonZeroBytes(user.salt);
+            }
+            attendingDoc.Password = Hashing(attendingDoc.Password, user.salt);
             user.HashedPassword = attendingDoc.Password;
             db.AttendingDocs.Update(attendingDoc);
             db.Users.Update(user);
@@ -546,11 +574,52 @@ namespace HospiFication.Controllers
         public async Task<IActionResult> EditEmergeDocPass(EmergencyDoc emergencyDoc)
         {
             User user = db.Users.FirstOrDefault(p => p.UserName == emergencyDoc.Emergency_Doc_FIO);
+            user.salt = new byte[128 / 8];
+            using (var rngCsp = new RNGCryptoServiceProvider())
+            {
+                rngCsp.GetNonZeroBytes(user.salt);
+            }
+            emergencyDoc.Password = Hashing(emergencyDoc.Password, user.salt);
             user.HashedPassword = emergencyDoc.Password;
             db.EmergencyDocs.Update(emergencyDoc);
             db.Users.Update(user);
             await db.SaveChangesAsync();
             return RedirectToAction("EmergeDocs");
+        }
+
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> EditPatientAttendDoc(int? id)
+        {
+            if (id != null)
+            {
+                Patient patient = await db.Patients.FirstOrDefaultAsync(p => p.PatientID == id);
+                var attendingdocs = db.AttendingDocs.Select(x => new { ID = x.AttendingDocID, FIO = x.Attending_Doc_FIO }).ToArray();
+                patient.AttendingDocIDs = new SelectList(attendingdocs, "ID", "FIO");
+                if (patient != null)
+                    return View(patient);
+
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> EditPatientAttendDoc(Patient patient)
+        {
+            db.Patients.Update(patient);
+            await db.SaveChangesAsync();
+            return RedirectToAction("Patients");
+        }
+
+        static string Hashing (string Password, byte[] Salt)
+        {
+                Password = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: Password,
+                salt: Salt,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 100000,
+                numBytesRequested: 256 / 8));
+            return (Password);
         }
     }
 }

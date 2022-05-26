@@ -86,11 +86,17 @@
                 <td>
                 <a asp-action="Extract" asp-controller="Home" asp-route-id="@p.PatientID">Выписать</a>|
                 </td>
+                <td>
+                <a asp-action="EditPatientAttendDoc" asp-controller="Home" asp-route-id="@p.PatientID">Перенаправить другому лечащему врачу</a>
+                </td>
             }
             @if (p.Extracted=="Выписан")
             {
                 <td>
                 <a asp-action="Extractions" asp-controller="Home" asp-route-id="@p.PatientID">Выписка</a>|
+                </td>
+                <td>
+
                 </td>
             }
             <td>
