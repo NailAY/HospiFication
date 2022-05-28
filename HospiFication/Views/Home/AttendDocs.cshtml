@@ -45,19 +45,21 @@
     </p>
 </form>
 
-<table class="table" border="1" cellspacing="0" bgcolor="#ffe4e1">
+<table class="table" border="3" cellspacing="0">
     <tr>
-        <th>
+        <th bgcolor="#ffe4e1">
             <a asp-action="AttendDocs" asp-route-page="1" asp-route-sortOrder="@ViewBag.IDSort">
                 ID Врача
             </a>
         </th>
-        <th>
+        <th bgcolor="#ffe4e1">
             <a asp-action="AttendDocs" asp-route-page="1" asp-route-sortOrder="@ViewBag.FIOSort">
                 ФИО лечащего врача
             </a>
         </th>
-        <th>Пароль (в зашифрованном виде)</th>
+        <th bgcolor="#ffe4e1">Пароль (в зашифрованном виде)</th>
+        <th bgcolor="#ffe4e1"></th>   
+        <th bgcolor="#ffe4e1"></th>
     </tr>
 
     @foreach (AttendingDoc p in Model.AttendingDocs)

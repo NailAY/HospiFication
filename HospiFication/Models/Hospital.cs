@@ -115,9 +115,6 @@ namespace HospiFication.Models
         public PageViewModel PageViewModel { get; set; }
         [NotMapped]
         public SelectList Extracteds { get; set; }
-        //public SelectList Notifications { get; set; }
-        //public SelectList Models { get; set; }
-        //public SelectList New_Or_Nots { get; set; }
     }
 
     public enum SortState

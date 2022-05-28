@@ -36,67 +36,6 @@
 	}
 	
 	<a asp-action="Logout">							Выход </a>
-
-
-
-	@*<h3>Автомобили</h3>
-
-	<form method="get">
-		<div class="form-inline form-group">
-
-			<label class="control-label">Марка: </label>
-			<select name="Notification" asp-items="Model.Notifications"
-					class="form-control"></select>
-			@if (Convert.ToString(Model.Notifications.SelectedValue) != "Все")
-			{
-				<label class="control-label">Модель: </label>
-				<select name="Model" asp-items="Model.Models"
-						class="form-control"></select>
-			}
-			@if (Convert.ToString(Model.Models.SelectedValue) != "Все")
-			{
-				<label class="control-label">Новый или Б/У: </label>
-				<select name="New_Or_Not" asp-items="Model.New_Or_Nots"
-						class="form-control"></select>
-			}
-			<input type="submit" value="Фильтр" class="btn btn-default" />
-		</div>
-	</form>
-
-
-	<table class="table" border="1" cellspacing="0" bgcolor="#ffe4e1">
-        <tr>
-            <th>ID_Авто</th>
-            <th>Марка</th>
-            <th>Модель</th>
-            <th>Новая/БУ</th>
-            <th>Год выпуска</th>
-            <th>Количество</th>
-            <th>Цена</th>
-            <th>Изображение</th>
-        </tr>
-
-		@foreach (Auto p in Model.Autos)
-		{
-    <tr>
-        <td>@p.AutoId</td>
-        <td>@p.Mark</td>
-        <td>@p.Model</td>
-        <td>@p.New_Or_Not</td>
-        <td>@p.Year</td>
-        <td>@p.Kol</td>
-        <td>@p.Zena</td>
-        <td><img class="img-responsive full-width" src="data:image/jpeg;base64,@Convert.ToBase64String(p.Img)" width="150" /> </td>
-        <td>
-            <a asp-action="AddPatient" asp-controller="Home" asp-route-id="@p.AutoId">Добавить в корзину</a>|
-            <a asp-action="AddRelative" asp-controller="Home" asp-route-id="@p.AutoId">Добавить в Желания</a>|
-            <a asp-action="Edit" asp-controller="Home" asp-route-id="@p.AutoId">Изменить</a> |
-            <a asp-action="Delete" asp-controller="Home" asp-route-id="@p.AutoId">Удалить</a>|
-        </td>
-    </tr>
-		}
-	</table>*@
-
 </body>
 </html>
 
