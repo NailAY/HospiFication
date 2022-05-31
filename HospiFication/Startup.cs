@@ -30,7 +30,7 @@ namespace HospiFication
             services.AddControllersWithViews();
 
             string connection = "Server = (localdb)\\mssqllocaldb;" +
-                    "Database = TryHospificationXIX; " +
+                    "Database = TryHospificationXX; " +
                     "Trusted_Connection = true";
             services.AddDbContext<BaseContext>(options =>
                               options.UseSqlServer(connection));

@@ -18,6 +18,83 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <ul class="navbar-nav flex-grow-1">
+                        @if (HospiFication.Controllers.HomeController.Role=="Врач приёмного отделения")           
+                         {          
+                            @if(HospiFication.Controllers.HomeController.CurrentPage == "Главная")
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddPatient">Добавить нового пациента</a>
+                                </li>
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout">Выход</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">На главную</a>
+                                </li>
+                            }
+                        }
+                         @if (HospiFication.Controllers.HomeController.Role=="Лечащий врач")           
+                         {   
+                             @if(HospiFication.Controllers.HomeController.CurrentPage == "Главная")
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Patients">Пациенты</a>
+                                </li>
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout">Выход</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">На главную</a>
+                                </li>
+                            }
+                            
+                         }
+                         @if (HospiFication.Controllers.HomeController.Role=="Администратор")           
+                         {  
+                             @if(HospiFication.Controllers.HomeController.CurrentPage == "Главная")
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AttendDocs">Лечащие врачи</a>
+                                </li>
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="EmergeDocs">Врачи приёмного отделения</a>
+                                </li>
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout">Выход</a>
+                                </li>
+                            }
+                            else if (HospiFication.Controllers.HomeController.CurrentPage=="Лечащие врачи")
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">На главную</a>
+                                </li>
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddAttendDocUser">Добавить нового лечащего врача</a>
+                                </li>
+                            }
+                            else if (HospiFication.Controllers.HomeController.CurrentPage=="Врачи приёмного отделения")
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">На главную</a>
+                                </li>
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddEmergeDocUser">Добавить нового врача приёмного отделения</a>
+                                </li>
+
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">На главную</a>
+                                </li>
+                            }
+                         }
                     </ul>
                 </div>
             </div>
@@ -31,7 +108,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2021 - HospiFication - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2022 - HospiFication - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>	
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

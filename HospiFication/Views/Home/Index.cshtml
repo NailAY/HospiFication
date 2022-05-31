@@ -10,32 +10,14 @@
 	<h2>Роль: @HospiFication.Controllers.HomeController.Role</h2>
 	<h2>Пользователь: @HospiFication.Controllers.HomeController.UserName</h2>
 	@if (HospiFication.Controllers.HomeController.Role != "Администратор")
-	{
-		<h2>IDПользователя: @HospiFication.Controllers.HomeController.DocIdWithThisRole</h2>
-	}
-	
-
-
-<body>
-	
-
-	@if (HospiFication.Controllers.HomeController.Role=="Лечащий врач")
-	{
-		<a asp-action="Patients"> Пациенты    </a>
-	}
-	@if (HospiFication.Controllers.HomeController.Role=="Врач приёмного отделения")
-	{
-		<a asp-action="AddPatient"> Добавить нового пациента    </a>
-	}
-	@if (HospiFication.Controllers.HomeController.Role=="Администратор")
-	{
-		<a asp-action="AddAttendDocUser"> Добавить нового лечащего врача    </a>
-		<a asp-action="AttendDocs"> Лечащие врачи    </a>
-		<a asp-action="AddEmergeDocUser"> Добавить нового врача приёмного отделения    </a>
-		<a asp-action="EmergeDocs"> Врачи приёмного отделения    </a>
-	}
-	
-	<a asp-action="Logout">							Выход </a>
-</body>
+	{	 @if (HospiFication.Controllers.HomeController.Role == "Лечащий врач")
+	     {
+		 <h2>ID лечащего врача: @HospiFication.Controllers.HomeController.DocIdWithThisRole</h2>
+		 }
+		 else
+		 {
+	 	<h2>ID врача приёмного отделения: @HospiFication.Controllers.HomeController.DocIdWithThisRole</h2>
+		 }
+    }
 </html>
 

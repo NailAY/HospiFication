@@ -27,6 +27,7 @@ namespace HospiFication.Controllers
         BaseContext db;
         public static string Role = "";
         public static string UserName = "";
+        public static string CurrentPage = "";
         public static int DocIdWithThisRole = new int();
         public HomeController(BaseContext context)
         {
@@ -39,6 +40,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор, Лечащий врач, Врач приёмного отделения")]
         public ActionResult Index()
         {
+            CurrentPage = "Главная";
             userdataattendingdocs.search = null;
             userdataattendingdocs.sortstate = SortState.Null;
             userdataattendingdocs.page = 1;
@@ -60,6 +62,7 @@ namespace HospiFication.Controllers
         [HttpGet]
         public IActionResult Login()
         {
+            CurrentPage = "Авторизация";
             if (String.IsNullOrEmpty(UserName))
                 return View();
             else
@@ -115,6 +118,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public IActionResult AddAttendDocUser()
         {
+            CurrentPage = "Добавление лечащего врача";
             User user = new User();
             user.RoleId = 2;
             user.Role = db.Roles.FirstOrDefault(i => i.Id.Equals(user.RoleId));
@@ -140,6 +144,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public IActionResult AddEmergeDocUser()
         {
+            CurrentPage = "Добавление врача приёмного отделения";
             User user = new User();
             user.RoleId = 3;
             user.Role = db.Roles.FirstOrDefault(i => i.Id.Equals(user.RoleId));
@@ -185,6 +190,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public IActionResult AttendDocs(string search, SortState sortOrder=SortState.Null, int page = 0)
         {
+            CurrentPage = "Лечащие врачи";
             int pageSize = 5;
             if ((userdataattendingdocs.page != 0) & (page == 0))
                 page = userdataattendingdocs.page;
@@ -227,6 +233,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public IActionResult EmergeDocs(string search, SortState sortOrder = SortState.Null, int page = 0)
         {
+            CurrentPage = "Врачи приёмного отделения";
             int pageSize = 5;
             if ((userdataemergencydocs.page != 0) & (page == 0))
                 page = userdataemergencydocs.page;
@@ -274,6 +281,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> ConfirmDeleteAttend(int? id)
         {
+            CurrentPage = "Удаление лечащего врача";
             AttendingDoc attendingDoc = await db.AttendingDocs.FirstOrDefaultAsync(p => p.AttendingDocID == id);
             return View(attendingDoc);
         }
@@ -295,6 +303,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> ConfirmDeleteEmerge(int? id)
         {
+            CurrentPage = "Удаление врача приёмного отделения";
             EmergencyDoc emergencyDoc = await db.EmergencyDocs.FirstOrDefaultAsync(p => p.EmergencyDocID == id);
             return View(emergencyDoc);
         }
@@ -314,6 +323,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Врач приёмного отделения")]
         public IActionResult AddPatient()
         {
+            CurrentPage = "Добавление пациента";
             var attendingdocs = db.AttendingDocs.Select(x => new { ID = x.AttendingDocID, FIO = x.Attending_Doc_FIO }).ToArray();
             Patient patient = new Patient();
             patient.Extracted = "Не выписан";
@@ -335,6 +345,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Врач приёмного отделения")]
         public IActionResult AddRelative()
         {
+            CurrentPage = "Добавление родственника";
             Relative relative = new Relative();
             relative.PatientID = db.Patients.OrderByDescending(p => p.PatientID).FirstOrDefault(p => p.EmergencyDocID.Equals(DocIdWithThisRole)).PatientID;
             return View(relative);
@@ -360,6 +371,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Patients(string search, string datesearch, string extracted, int page=0, SortState sortOrder = SortState.Null)
         {
+            CurrentPage = "Пациенты";
             int pageSize = 5;
             IEnumerable<Patient> patients = new List<Patient>();
             if ((userdatapatients.page != 0) & (page == 0))
@@ -429,6 +441,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Relatives(int? id)
         {
+            CurrentPage = "Родственники";
             CommonList common = new CommonList
             {
                 Relatives = db.Relatives.Where(p => p.PatientID.Equals(id)).ToList()  
@@ -440,6 +453,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Extract(int id)
         {
+            CurrentPage = "Выписать";
             Extraction extraction = new Extraction();
             extraction.PatientID = id;
             extraction.AttendingDocID = db.Patients.FirstOrDefault(p => p.PatientID.Equals(id)).AttendingDocID;
@@ -500,6 +514,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Extractions(int? id)
         {
+            CurrentPage = "Выписки";
             CommonList common = new CommonList
             {
                 Extractions = db.Extractions.Where(p => p.PatientID.Equals(id)).ToList()
@@ -510,6 +525,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Notifications(int? id)
         {
+            CurrentPage = "Уведомления";
             CommonList common = new CommonList
             {
                 Notifications = db.Notifications.Where(p => p.ExtractionID.Equals(id)).ToList()
@@ -530,6 +546,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> EditAttendDocPass(int? id)
         {
+            CurrentPage = "Редактирование пароля лечащего врача";
             if (id != null)
             {
                 AttendingDoc attendingDoc = await db.AttendingDocs.FirstOrDefaultAsync(p => p.AttendingDocID == id);
@@ -560,6 +577,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Администратор")]
         public async Task<IActionResult> EditEmergeDocPass(int? id)
         {
+            CurrentPage = "Редактирование пароля врача приёмного отделения";
             if (id != null)
             {
                 EmergencyDoc emergencyDoc = await db.EmergencyDocs.FirstOrDefaultAsync(p => p.EmergencyDocID == id);
@@ -590,6 +608,7 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         public async Task<IActionResult> EditPatientAttendDoc(int? id)
         {
+            CurrentPage = "Выбор другого врача для пациента";
             if (id != null)
             {
                 Patient patient = await db.Patients.FirstOrDefaultAsync(p => p.PatientID == id);
@@ -620,6 +639,26 @@ namespace HospiFication.Controllers
                 iterationCount: 100000,
                 numBytesRequested: 256 / 8));
             return (Password);
+        }
+        public ActionResult Privacy()
+        {
+            CurrentPage = "Конфиденциальность";
+            userdataattendingdocs.search = null;
+            userdataattendingdocs.sortstate = SortState.Null;
+            userdataattendingdocs.page = 1;
+
+            userdataemergencydocs.search = null;
+            userdataemergencydocs.sortstate = SortState.Null;
+            userdataemergencydocs.page = 1;
+
+            userdatapatients.datesearch = null;
+            userdatapatients.search = null;
+            userdatapatients.filter = null;
+            userdatapatients.sortstate = SortState.Null;
+            userdatapatients.page = 1;
+
+
+            return View();
         }
     }
 }
