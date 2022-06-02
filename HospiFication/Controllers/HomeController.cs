@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
@@ -489,6 +490,7 @@ namespace HospiFication.Controllers
                     notification.PID = db.Extractions.FirstOrDefault(p => p.ExtractionID.Equals(notification.ExtractionID)).PatientID;
                     notification.RID = p.RelativeID;
                     notification.NotificationText = $"Ваш(а) родственник(ца) {patient.FIO} будет выписан(а) сегодня в 11:00";
+                    string notificationforsend = notificatio.NotificationText;
                     string phone = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativePhone;
                     string mail = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativeMail;
                     NotifyByMail(notification, mail);
@@ -509,7 +511,46 @@ namespace HospiFication.Controllers
         [Authorize(Roles = "Лечащий врач")]
         static void NotifyByPhone(Notification notification, string phone)
         {
-
+            string file = @"J:\Учёба\4курс\2 семестр\Дипломный проект\Программа\HospiFication\HospiFication\LoginAndPassForNotification.txt";
+            string[] lines = System.IO.File.ReadAllLines(file);
+            string message = notification.NotificationText;
+            string number = phone;
+            string sender = "hello1";
+            string login = lines[0];;
+            var XML = "XML=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+             "<SMS>\n" +
+             "<operations>\n" +
+             "<operation>SEND</operation>\n" +
+             "</operations>\n" +
+             "<authentification>\n" +
+             $"<username>{login}</username>\n" +
+             $"<password>{lines[1]}</password>\n" +
+             "</authentification>\n" +
+             "<message>\n" +
+             $"<sender>{sender}</sender>\n" +
+             $"<text>{message}</text>\n" +
+             "</message>\n" +
+             "<numbers>\n" +
+             $"<number messageID=\"msg11\">{number}</number>\n" +
+             "</numbers>\n" +
+             "</SMS>\n";
+            HttpWebRequest request = WebRequest.Create("http://api.myatompark.com/members/sms/xml.php") as HttpWebRequest;
+            request.Method = "Post";
+            request.ContentType = "application/x-www-form-urlencoded";
+            UTF8Encoding encoding = new UTF8Encoding();
+            byte[] data = encoding.GetBytes(XML);
+            request.ContentLength = data.Length;
+            Stream dataStream = request.GetRequestStream();
+            dataStream.Write(data, 0, data.Length);
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                if (response.StatusCode != HttpStatusCode.OK)
+                    throw new Exception(String.Format(
+                    "Server error (HTTP {0}: {1}).",
+                    response.StatusCode,
+                    response.StatusDescription));
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+            }
         }
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Extractions(int? id)
