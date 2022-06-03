@@ -493,8 +493,10 @@ namespace HospiFication.Controllers
                     string notificationforsend = notificatio.NotificationText;
                     string phone = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativePhone;
                     string mail = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativeMail;
-                    NotifyByMail(notification, mail);
-                    NotifyByPhone(notification, phone);
+                    if (!String.IsNullOrEmpty(mail))
+                        await NotifyByMailAsync(notification, mail);
+                    if (!String.IsNullOrEmpty(phone))
+                        NotifyByPhone(notification, phone);
                     db.Notifications.Add(notification);
                     await db.SaveChangesAsync();
                 }
@@ -504,9 +506,10 @@ namespace HospiFication.Controllers
         }
 
         [Authorize(Roles = "Лечащий врач")]
-        static void NotifyByMail(Notification notification, string mail)
+        static async Task NotifyByMailAsync(Notification notification, string mail)
         {
-            
+            EmailService emailService = new EmailService();
+            await emailService.SendEmailAsync(mail, "Выписка родственника", notification.NotificationText);
         }
         [Authorize(Roles = "Лечащий врач")]
         static void NotifyByPhone(Notification notification, string phone)
