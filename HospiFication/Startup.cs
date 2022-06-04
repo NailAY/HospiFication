@@ -17,6 +17,8 @@ namespace HospiFication
 {
     public class Startup
     {
+        public static string file;
+        public static string[] lines = new string[3];
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -41,6 +43,8 @@ namespace HospiFication
                     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/Login");
                 });
             services.AddMvc();
+            file = @"J:\Учёба\4курс\2 семестр\Дипломный проект\Программа\HospiFication\HospiFication\LoginAndPassForNotification.txt";
+            lines = System.IO.File.ReadAllLines(file);
 
         }
 
