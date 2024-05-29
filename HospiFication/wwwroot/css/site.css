@@ -13,15 +13,45 @@ a {
 }
 
 .btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+    color: #fff;
+    background-color: #123456;
+    border-color: #ff60fc;
 }
 
+    .btn-primary:hover, .btn-primary.hover{
+        color: #000;
+        background-color: #ffe4e1;
+        border-color: #ff60fc;
+    }
+    .btn-primary:active, .btn-primary.active {
+        color: #000;
+        background-color: #ffe4e1;
+        border-color: #ff60fc;
+        -webkit-tap-highlight-color: #ff60fc;
+    }
+    .btn-primary:focus, .btn-primary.focus{
+        color: #000;
+        background-color: #ffe4e1;
+        border-color: #ff60fc;
+        -webkit-tap-highlight-color: #ff60fc;
+        outline-color: palevioletred;
+    }
+    .btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active,
+    .show > .btn-primary.dropdown-toggle {
+        color: #fff;
+        background-color: #ff60fc;
+        border-color: #ff60fc;
+    }
+
+    .btn-primary:not(:disabled):not(.disabled):active:focus, .btn-primary:not(:disabled):not(.disabled).active:focus,
+    .show > .btn-primary.dropdown-toggle:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 255, 0, 0.5);
+    }
+
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+    color: #fff;
+    background-color: #ff60fc;
+    border-color: #ff60fc;
 }
 
 /* Sticky footer styles
@@ -39,6 +69,7 @@ html {
   border-top: 1px solid #e5e5e5;
 }
 .border-bottom {
+
   border-bottom: 1px solid #e5e5e5;
 }
 

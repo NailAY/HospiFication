@@ -14,7 +14,7 @@ using System.Text;
 
 namespace HospiFication.Models
 {
-    public class BaseContext : DbContext
+public class BaseContext : DbContext
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -27,6 +27,8 @@ namespace HospiFication.Models
         public DbSet<Extraction> Extractions { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Medicine> Medicines { get; set; }
+        public DbSet<MedicineIDs> MedicineIDs { get; set; }
 
         public BaseContext(DbContextOptions<BaseContext> options)
                : base(options)
@@ -72,7 +74,7 @@ namespace HospiFication.Models
     {
         public async Task SendEmailAsync(string email, string subject, string message)
         {
-            string file = @"J:\Учёба\4курс\2 семестр\Дипломный проект\Программа\HospiFication\HospiFication\LoginAndPassForNotification.txt";
+            string file = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFication\LoginAndPassForNotification.txt";
             string[] lines = System.IO.File.ReadAllLines(file);
             var emailMessage = new MimeMessage();
 

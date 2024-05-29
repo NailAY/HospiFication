@@ -37,6 +37,7 @@ namespace HospiFication.Controllers
         public static UserDataPatients userdatapatients = new UserDataPatients();
         public static UserDataAttendingDocs userdataattendingdocs = new UserDataAttendingDocs();
         public static UserDataEmergencyDocs userdataemergencydocs = new UserDataEmergencyDocs();
+        public static UserDataMedicines userdatamedicines = new UserDataMedicines();
       
         [Authorize(Roles = "Администратор, Лечащий врач, Врач приёмного отделения")]
         public ActionResult Index()
@@ -368,7 +369,32 @@ namespace HospiFication.Controllers
             await db.SaveChangesAsync();
             return RedirectToAction("Index");
         }
+        //mrnev++ 14.05.2024
+        [Authorize(Roles = "Лечащий врач")]
+        public IActionResult AddMedicine()
+        {
+            CurrentPage = "Добавление лекарства";
+            Medicine medicine = new Medicine();
+            return View(medicine);
+        }
 
+        [HttpPost]
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> SaveAndAddMedicine(Medicine medicine)
+        {
+            db.Medicines.Add(medicine);
+            await db.SaveChangesAsync();
+            return RedirectToAction("AddMedicine");
+        }
+        [HttpPost]
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> SaveMedicine(Medicine medicine)
+        {
+            db.Medicines.Add(medicine);
+            await db.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+        //mrnev++ 14.05.2024
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Patients(string search, string datesearch, string extracted, int page=0, SortState sortOrder = SortState.Null)
         {
@@ -439,6 +465,41 @@ namespace HospiFication.Controllers
             return View(common);
         }
 
+        //mrnev++ 13.05.2024
+        [Authorize(Roles = "Лечащий врач")]
+        public IActionResult Medicines(string search, int page = 0)
+        {
+            CurrentPage = "Лекарственные препараты";
+            int pageSize = 5;
+            IEnumerable<Medicine> medicines = new List<Medicine>();
+            if ((userdatamedicines.page != 0) & (page == 0))
+                page = userdatamedicines.page;
+            if ((!String.IsNullOrEmpty(userdatamedicines.search)) & (String.IsNullOrEmpty(search)))
+                search = userdatapatients.search;
+            List<string> extractHelps = new List<string>();
+            medicines = db.Medicines.OrderBy(m => m.MedicineName);
+            if (!String.IsNullOrEmpty(search) && search != "Все")
+            {
+                medicines = medicines.Where(m => m.MedicineName.Contains(search));
+            }
+
+            var count = medicines.Count();
+            medicines = medicines.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            PageViewModel pageViewModel = new PageViewModel(count, page, pageSize);
+
+            CommonList common = new CommonList
+            {
+                PageViewModel = pageViewModel,
+                Medicines = medicines,
+                Extracteds = new SelectList(extractHelps)
+            };
+            userdatamedicines.page = page;
+            userdatamedicines.search = search;
+            return View(common);
+        }
+        //mrnev++ 13.05.2024
+
         [Authorize(Roles = "Лечащий врач")]
         public IActionResult Relatives(int? id)
         {
@@ -459,13 +520,33 @@ namespace HospiFication.Controllers
             extraction.PatientID = id;
             extraction.AttendingDocID = db.Patients.FirstOrDefault(p => p.PatientID.Equals(id)).AttendingDocID;
             extraction.ExtractionDate = DateTime.Today.ToShortDateString();
+            var medicines = db.Medicines.Select(x => new { ID = x.MedicineID, Name = x.MedicineName }).ToArray();
+            extraction.MedicineIDs = new SelectList(medicines, "ID", "Name");
             return View(extraction);
         }
         [HttpPost]
         [Authorize(Roles = "Лечащий врач")]
-        public async Task<IActionResult> Extract(Extraction extraction)
+        public async Task<IActionResult> Extract(Extraction extraction, int[] Meds)
         {
             db.Extractions.Add(extraction);
+            await db.SaveChangesAsync();
+            extraction.Medicines = new List<MedicineIDs>();
+            foreach (int med in Meds)
+            {
+                if (med > 1)
+                {
+                    MedicineIDs medid = new MedicineIDs();
+                    medid.MedicineID = med;
+                    medid.ExtractionID = extraction.ExtractionID;
+                    db.MedicineIDs.Add(medid);
+                    db.SaveChanges();
+                    MedicineIDs medidfromdb = new MedicineIDs();
+
+                    extraction.Medicines.Add(db.MedicineIDs.ToList().Last(m => m.MedicineID == medid.MedicineID));
+                }
+            }
+             
+            
             Patient patient = db.Patients.FirstOrDefault(p => p.PatientID.Equals(extraction.PatientID));
             patient.Extracted = "Выписан";
             db.Patients.Update(patient);
@@ -485,11 +566,31 @@ namespace HospiFication.Controllers
             {
                 foreach (Relative p in relative)
                 {
+                    Extraction extraction = new Extraction();
+                    extraction = db.Extractions.OrderByDescending(p => p.ExtractionID).First(p => p.AttendingDocID.Equals(DocIdWithThisRole));
+                    IEnumerable<MedicineIDs> medicineids = new List<MedicineIDs>();
+                    medicineids = db.MedicineIDs.Where(m => m.ExtractionID == extraction.ExtractionID).ToList();
+                    string medicinename = "";
+                    string namesofmedicines = " ";
+                    if (medicineids.Count() > 0)
+                    {
+                        foreach (MedicineIDs medicineid in medicineids)
+                        {
+                            if (medicineid.MedicineID > 1)
+                            {
+                                medicinename = db.Medicines.FirstOrDefault(med => med.MedicineID == medicineid.MedicineID).MedicineName;
+                                namesofmedicines = namesofmedicines + medicinename + " ";
+                            }
+                        }
+                    }
+
+                    
                     Notification notification = new Notification();
                     notification.ExtractionID = db.Extractions.OrderByDescending(p => p.ExtractionID).First(p => p.AttendingDocID.Equals(DocIdWithThisRole)).ExtractionID;
                     notification.PID = db.Extractions.FirstOrDefault(p => p.ExtractionID.Equals(notification.ExtractionID)).PatientID;
                     notification.RID = p.RelativeID;
-                    notification.NotificationText = $"Ваш(а) родственник(ца) {patient.FIO} будет выписан(а) сегодня в 11:00";
+                    notification.NotificationText = $"Ваш(а) родственник(ца) {patient.FIO} будет выписан(а) сегодня в 11:00." +
+                        $"Рекомендованные лекарства: " + namesofmedicines;
                     string notificationforsend = notificatio.NotificationText;
                     string phone = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativePhone;
                     string mail = db.Relatives.FirstOrDefault(p => p.RelativeID.Equals(notification.RID)).RelativeMail;
@@ -523,7 +624,9 @@ namespace HospiFication.Controllers
             CurrentPage = "Выписки";
             CommonList common = new CommonList
             {
-                Extractions = db.Extractions.Where(p => p.PatientID.Equals(id)).ToList()
+                Extractions = db.Extractions.Where(p => p.PatientID.Equals(id)).ToList(),
+                MedicineIDss = db.MedicineIDs.ToList(),
+                Medicines = db.Medicines.ToList()
             };
             return View(common);
 
@@ -635,6 +738,51 @@ namespace HospiFication.Controllers
             await db.SaveChangesAsync();
             return RedirectToAction("Patients");
         }
+
+        //mrnev++ 14.05.2024
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> EditMedicine(int? id)
+        {
+            CurrentPage = "Редактирование информации о препарате";
+            if (id != null)
+            {
+                Medicine medicine = await db.Medicines.FirstOrDefaultAsync(p => p.MedicineID == id);
+                if (medicine != null)
+                    return View(medicine);
+
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> EditMedicine(Medicine medicine)
+        {
+            db.Medicines.Update(medicine);
+            await db.SaveChangesAsync();
+            return RedirectToAction("Medicines");
+        }
+
+        [HttpGet]
+        [ActionName("DeleteMedicine")]
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> ConfirmDeleteMedicine(int? id)
+        {
+            CurrentPage = "Удаление препарата";
+            Medicine medicine = await db.Medicines.FirstOrDefaultAsync(p => p.MedicineID == id);
+            return View(medicine);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Лечащий врач")]
+        public async Task<IActionResult> DeleteMedicine(int? id)
+        {
+            Medicine medicine = await db.Medicines.FirstOrDefaultAsync(p => p.MedicineID == id);
+            db.Medicines.Remove(medicine);
+            await db.SaveChangesAsync();
+            return RedirectToAction("Medicines");
+        }
+        //mrnev++ 14.05.2024
 
         static string Hashing (string Password, byte[] Salt)
         {

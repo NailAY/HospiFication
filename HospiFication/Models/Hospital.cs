@@ -8,7 +8,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HospiFication.Models
 {
-
+    public class MedicineIDs
+    {
+        public int MedicineIDsID { get;set; }
+        public int MedicineID { get; set; }
+        public int ExtractionID { get; set; }
+    }
     public class User
     {
         public int Id { get; set; }
@@ -89,6 +94,10 @@ namespace HospiFication.Models
         public Patient Patient { get; set; }
         public int AttendingDocID { get; set; }
         public string Conclusion { get; set; }
+        public List<MedicineIDs> Medicines { get; set; }
+        
+        [NotMapped]
+        public SelectList MedicineIDs { get; set; }
     }
 
     public class Notification
@@ -103,6 +112,13 @@ namespace HospiFication.Models
         public Relative Relative { get; set; }
     }
 
+    public class Medicine
+    {
+        public int MedicineID { get; set; }
+        public string MedicineName { get; set; }
+        public string Disease { get; set; }
+    }
+
 
     public class CommonList
     {
@@ -112,6 +128,8 @@ namespace HospiFication.Models
         public IEnumerable<Relative> Relatives { get; set; }
         public IEnumerable<Extraction> Extractions{ get; set; }
         public IEnumerable<Notification> Notifications { get; set; }
+        public IEnumerable<Medicine> Medicines { get; set; }
+        public IEnumerable<MedicineIDs> MedicineIDss { get; set; }
         public PageViewModel PageViewModel { get; set; }
         [NotMapped]
         public SelectList Extracteds { get; set; }
@@ -143,6 +161,14 @@ namespace HospiFication.Models
 
     }
     public class UserDataEmergencyDocs
+    {
+        public string search { get; set; }
+        public SortState sortstate { get; set; }
+        public int page { get; set; }
+
+    }
+
+    public class UserDataMedicines
     {
         public string search { get; set; }
         public SortState sortstate { get; set; }

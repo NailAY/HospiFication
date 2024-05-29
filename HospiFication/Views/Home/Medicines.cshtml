@@ -1,0 +1,96 @@
+﻿@model HospiFication.Models.CommonList
+@using HospiFication.Models
+@{
+    ViewData["Title"] = "Лекарства";
+}
+    <style>
+        @@font-face {
+            font-family: 'FontAwesome';
+            src: url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2') format('woff2'), 
+            url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff') format('woff'), 
+            url('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/fonts/fontawesome-webfont.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal
+        }
+ 
+        .glyphicon {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale
+        }
+ 
+        .glyphicon-chevron-right:before {
+            content: "\f054";
+        }
+ 
+        .glyphicon-chevron-left:before {
+            content: "\f053";
+        }
+    </style>
+<h1>Лекарственные препараты</h1>
+
+    <div class="form-group">
+        <a asp-action="AddMedicine" class="btn btn-primary">Добавить лекарственный препарат</a>
+    </div>
+
+
+<form asp-controller="Home" asp-action="Patients">
+    <p>
+        Поиск по наименованию: <input type="text" name="search" value="@HospiFication.Controllers.HomeController.userdatamedicines.search"  />
+    </select>
+        <input type="submit" value="Фильтр" asp-route-page="1" />
+    </p>
+            
+</form>
+
+<table class="table" border="3" cellspacing="0">
+    <tr>
+        <th bgcolor="#ffe4e1">ID лекарства</th>
+        <th bgcolor="#ffe4e1">Наименование</th>
+        <th bgcolor="#ffe4e1">Назначается в случае:</th>
+        <th bgcolor="#ffe4e1"> </th>
+        <th bgcolor="#ffe4e1"> </th>
+    </tr>
+
+    @foreach (Medicine m in Model.Medicines)
+    {
+        <tr>
+            <td>@m.MedicineID</td>
+            <td>@m.MedicineName</td>
+            <td>@m.Disease</td>
+            <td>
+                <a asp-action="DeleteMedicine" asp-controller="Home" asp-route-id="@m.MedicineID">Удалить</a>|
+            </td>
+            <td>
+                <a asp-action="EditMedicine" asp-controller="Home" asp-route-id="@m.MedicineID">Редактировать</a>|
+            </td>
+        </tr>
+     }
+    </table>
+    @if (Model.PageViewModel.HasPreviousPage)
+{
+    <a asp-action="Medicines"
+       asp-route-page="@(Model.PageViewModel.PageNumber - 1)"
+       class="btn btn-outline-dark">
+        <i class="glyphicon glyphicon-chevron-left"></i>
+        Назад
+    </a>
+}
+    @if (Model.PageViewModel.HasNextPage)
+{
+    <a asp-action="Medicines"
+       asp-route-page="@(Model.PageViewModel.PageNumber + 1)"
+       class="btn btn-outline-dark">
+        Вперед
+        <i class="glyphicon glyphicon-chevron-right"></i>
+    </a>
+}
+<li></li>
+    <div class="form-group">
+            <a asp-action="Patients" class="btn btn-primary">Назад</a>
+    </div>
+
+

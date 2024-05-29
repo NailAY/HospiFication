@@ -264,7 +264,8 @@ button,
 [type="button"],
 [type="reset"],
 [type="submit"] {
-  -webkit-appearance: button;
+    -webkit-appearance: button;
+    background-color: #ffe4e1;
 }
 
 button:not(:disabled),
@@ -2995,6 +2996,7 @@ input[type="submit"].btn-block,
 input[type="reset"].btn-block,
 input[type="button"].btn-block {
   width: 100%;
+  background-color: #
 }
 
 .fade {

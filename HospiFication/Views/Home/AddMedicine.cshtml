@@ -1,0 +1,33 @@
+﻿@model HospiFication.Models.Medicine
+@{
+	ViewBag.Title = "Добавление лекарства";
+}
+
+    <form asp-action="AddMedicine" asp-controller="home" method="post" enctype="multipart/form-data">
+        
+        <div class="form-group">
+            <label asp-for="MedicineID" class="control-label" hidden="true" >ID лекарства</label>
+            <input type="text" asp-for="MedicineID" hidden="true" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MedicineName" class="control-label">Наименование лекарства</label>
+            <input type="text" asp-for="MedicineName" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Disease" class="control-label" >Назначается от:</label>
+            <input type="text" asp-for="Disease" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Сохранить и добавить" formaction="SaveAndAddMedicine" class="btn btn-light" />
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Сохранить" formaction="SaveMedicine" class="btn btn-light" />
+        </div>
+        <div class="form-group">
+            <a asp-action="Index" class="btn btn-primary">На главную</a>
+        </div>
+    </form>

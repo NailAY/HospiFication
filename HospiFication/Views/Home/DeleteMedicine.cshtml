@@ -1,0 +1,30 @@
+﻿@model HospiFication.Models.Medicine
+@{
+	ViewBag.Title = "Удаление препарата";
+}
+
+<div>
+    <dl class="dl-horizontal">
+
+        <dt>ID</dt>
+        <dd>
+            @Html.DisplayFor(model => model.MedicineID)
+        </dd>
+
+        <dt>Наименование лекарства</dt>
+        <dd>
+            @Html.DisplayFor(model => model.MedicineName)
+        </dd>
+
+    </dl>
+	<div>
+		<form asp-controller="Home" asp-action="DeleteMedicine" method="post">
+			<div class="form-group">
+				<input type="submit" class="btn btn-light" value="Удалить" />
+			</div>
+		</form>
+        <div class="form-group">
+            <a asp-action="Medicines" class="btn btn-primary">Назад</a>
+        </div>
+	</div>
+</div>

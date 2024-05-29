@@ -1,0 +1,8 @@
+﻿// Custom.scss
+// Option A: Подключите весь Bootstrap
+
+// Ваши переназначения
+$primary: #ff0000;
+
+// BS4 и его переменные по умолчанию
+@import "../lib/bootstrap/dist/css/bootstrap.css";

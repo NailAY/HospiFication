@@ -13,6 +13,7 @@
         <th bgcolor="#ffe4e1">ID пациента</th>
         <th bgcolor="#ffe4e1">ID Лечащего врача</th>
         <th bgcolor="#ffe4e1">Заключение</th>
+        <th bgcolor="#ffe4e1">Выписанные лекарства</th>
         <th bgcolor="#ffe4e1"></th>   
     </tr>
 
@@ -24,7 +25,15 @@
             <td>@p.PatientID</td>
             <td>@p.AttendingDocID</td>
             <td>@p.Conclusion</td>
-
+            <td>
+            @foreach (MedicineIDs medicineID in Model.MedicineIDss)
+            {
+                    @if (medicineID.ExtractionID == p.ExtractionID)
+                    {
+                        <p>@Model.Medicines.FirstOrDefault(m => m.MedicineID == medicineID.MedicineID).MedicineName</p>
+                    }
+            }
+            </td>
             <td>
             <a asp-action="Notifications" asp-controller="Home" asp-route-id="@p.ExtractionID">Уведомления</a>|
             </td>

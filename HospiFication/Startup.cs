@@ -32,7 +32,7 @@ namespace HospiFication
             services.AddControllersWithViews();
 
             string connection = "Server = (localdb)\\mssqllocaldb;" +
-                    "Database = TryHospificationXXX; " +
+                    "Database = TryHospificationMagTestThinkLast; " +
                     "Trusted_Connection = true";
             services.AddDbContext<BaseContext>(options =>
                               options.UseSqlServer(connection));
@@ -43,7 +43,7 @@ namespace HospiFication
                     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/Login");
                 });
             services.AddMvc();
-            file = @"J:\Учёба\4курс\2 семестр\Дипломный проект\Программа\HospiFication\HospiFication\LoginAndPassForNotification.txt";
+            file = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFication\LoginAndPassForNotification.txt";
             lines = System.IO.File.ReadAllLines(file);
 
         }
