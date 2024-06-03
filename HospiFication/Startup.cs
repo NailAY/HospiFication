@@ -43,7 +43,7 @@ namespace HospiFication
                     options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/Login");
                 });
             services.AddMvc();
-            file = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFication\LoginAndPassForNotification.txt";
+            file = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\LoginAndPassForNotification.txt";
             lines = System.IO.File.ReadAllLines(file);
 
         }

@@ -68,13 +68,18 @@ public class BaseContext : DbContext
             modelBuilder.Entity<User>().HasData(new User[] { adminUser });
             base.OnModelCreating(modelBuilder);
         }
+
+        public static explicit operator BaseContext(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class EmailService
     {
         public async Task SendEmailAsync(string email, string subject, string message)
         {
-            string file = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFication\LoginAndPassForNotification.txt";
+            string file = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\LoginAndPassForNotification.txt";
             string[] lines = System.IO.File.ReadAllLines(file);
             var emailMessage = new MimeMessage();
 

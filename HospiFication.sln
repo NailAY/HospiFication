@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31702.278
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HospiFication", "HospiFication\HospiFication.csproj", "{E71ED68E-A23F-44B9-A882-190088576441}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HospiFication", "HospiFication\HospiFication.csproj", "{E71ED68E-A23F-44B9-A882-190088576441}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncModule", "SyncModule\SyncModule.csproj", "{D64375F9-8AFD-412A-A49D-33AAD9D043DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{E71ED68E-A23F-44B9-A882-190088576441}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E71ED68E-A23F-44B9-A882-190088576441}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E71ED68E-A23F-44B9-A882-190088576441}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D64375F9-8AFD-412A-A49D-33AAD9D043DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D64375F9-8AFD-412A-A49D-33AAD9D043DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D64375F9-8AFD-412A-A49D-33AAD9D043DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D64375F9-8AFD-412A-A49D-33AAD9D043DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

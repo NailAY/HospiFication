@@ -20,12 +20,14 @@ using System.Security.Claims;
 using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+//using Microsoft.CodeAnalysis;
 
 namespace HospiFication.Controllers
 {
     public class HomeController : Controller
     {
         BaseContext db;
+        public static BaseContext dbforSync;
         public static string Role = "";
         public static string UserName = "";
         public static string CurrentPage = "";
@@ -33,6 +35,7 @@ namespace HospiFication.Controllers
         public HomeController(BaseContext context)
         {
             db = context;
+            dbforSync = context;
         }
         public static UserDataPatients userdatapatients = new UserDataPatients();
         public static UserDataAttendingDocs userdataattendingdocs = new UserDataAttendingDocs();
@@ -813,6 +816,202 @@ namespace HospiFication.Controllers
 
 
             return View();
+        }
+        [Authorize(Roles = "Администратор")]
+        public IActionResult Sync()
+        {
+            dbforSync = db;
+            String dbarg = Convert.ToString(dbforSync);
+            // Путь к исполняемому файлу .NET 5 консольного приложения
+            string pathToDotNet8App = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\SyncModule\bin\Debug\net8.0\SyncModule.exe";
+
+            // Настройка параметров процесса
+            foreach (AttendingDoc d in db.AttendingDocs)
+            {
+                string[] args = new string[] { "Сотрудники", "\"" + d.Attending_Doc_FIO + "\"" };
+                int count = 0;
+                string readyargs = "";
+                foreach (string argument in args)
+                {
+                    readyargs = readyargs + argument + " ";
+                }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\SyncModule\bin\Debug\net5.0\SyncModule.exe",
+                    Arguments = readyargs,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Запуск процесса и чтение его вывода
+                using (Process process = Process.Start(startInfo))
+                {
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        string result = reader.ReadToEnd();
+                        Console.WriteLine(result);
+                    }
+                }
+            }
+
+            /////////////////////////////////////////////////////////////
+
+            foreach (EmergencyDoc d in db.EmergencyDocs)
+            {
+                string[] args = new string[] { "Сотрудники", "\"" + d.Emergency_Doc_FIO + "\"" };
+                int count = 0;
+                string readyargs = "";
+                foreach (string argument in args)
+                {
+                    readyargs = readyargs + argument + " ";
+                }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\SyncModule\bin\Debug\net5.0\SyncModule.exe",
+                    Arguments = readyargs,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Запуск процесса и чтение его вывода
+                using (Process process = Process.Start(startInfo))
+                {
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        string result = reader.ReadToEnd();
+                        Console.WriteLine(result);
+                    }
+                }
+            }
+
+            /////////////////////////////////////////////////////////////
+
+            foreach (Patient p in db.Patients.ToList())
+            {
+                IEnumerable<Relative> relatives = dbforSync.Relatives.Where(r => r.PatientID == p.PatientID).ToList();
+                AttendingDoc attendingdoc = db.AttendingDocs.FirstOrDefault(r => r.AttendingDocID == p.AttendingDocID);
+                string[] args = new string[] {"Пациенты", p.PatientID.ToString(), "\"" + p.FIO + "\"", p.BirthDay, "\"" + attendingdoc.Attending_Doc_FIO + "\"",
+                "\"" + p.Symptoms + "\"","\"" + "\"","\"" + "\"","\"" + "\"","\"" + "\"","\"" + "\"","\"" + "\"","\"" + "\"","\"" + "\"","\"" + "\""};
+                int count = 0;
+                foreach (Relative r in relatives)
+                {
+                    if (count < 3)
+                    {
+                        args[6 + count * 3] = r.RelativePhone;
+                        args[7 + count * 3] = r.RelativeMail;
+                        args[8 + count * 3] = r.WhatsRelative;
+                        count++;
+                    }
+                }
+                string readyargs = "";
+                foreach (string argument in args)
+                {
+                    readyargs = readyargs + argument + " ";
+                }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\SyncModule\bin\Debug\net5.0\SyncModule.exe",
+                    Arguments = readyargs,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Запуск процесса и чтение его вывода
+                using (Process process = Process.Start(startInfo))
+                {
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        string result = reader.ReadToEnd();
+                        Console.WriteLine(result);
+                    }
+                }
+            }
+
+            /////////////////////////////////////////////////////////////
+
+            foreach (Extraction e in db.Extractions.ToList())
+            {
+                //IEnumerable<Relative> relatives = dbforSync.Relatives.Where(r => r.PatientID == p.PatientID).ToList();
+                //AttendingDoc attendingdoc = db.AttendingDocs.FirstOrDefault(r => r.AttendingDocID == p.AttendingDocID);
+                string medicines = "";
+                IEnumerable<MedicineIDs> medicineids = dbforSync.MedicineIDs.Where(m => m.ExtractionID == e.ExtractionID).ToList();
+
+                if (medicineids != null)
+                {
+                    foreach (MedicineIDs m in medicineids)
+                    {
+                        medicines = medicines + db.Medicines.FirstOrDefault(q => q.MedicineID == m.MedicineID).MedicineName + " ";
+                    }
+                }
+
+
+
+                Patient patient = db.Patients.FirstOrDefault(p => p.PatientID == e.PatientID);
+                AttendingDoc attendingdoc = db.AttendingDocs.FirstOrDefault(r => r.AttendingDocID == e.AttendingDocID);
+                string[] args = new string[] {"Выписка", e.ExtractionID.ToString(), "\"" + e.Patient.FIO + "\"",
+                "\"" + e.Conclusion + "\"", "\"" + medicines + "\"", "Да", patient.BirthDay, "\"" + attendingdoc.Attending_Doc_FIO + "\"",
+                "\"" + patient.Symptoms + "\"", e.PatientID.ToString()};
+
+                string readyargs = "";
+                foreach (string argument in args)
+                {
+                    readyargs = readyargs + argument + " ";
+                }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\SyncModule\bin\Debug\net5.0\SyncModule.exe",
+                    Arguments = readyargs,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Запуск процесса и чтение его вывода
+                using (Process process = Process.Start(startInfo))
+                {
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        string result = reader.ReadToEnd();
+                        Console.WriteLine(result);
+                    }
+                }
+            }
+
+            ///////////////////////////////////////////////////////////
+
+            foreach (Notification n in db.Notifications.ToList())
+            {
+                string[] args = new string[] { "Уведомления", n.NotificationId.ToString(), "\"" + "Уведомление о выписке N" + n.NotificationId.ToString() + "\"", n.ExtractionID.ToString(), "\"" + n.NotificationText + "\"" };
+                string readyargs = "";
+                foreach (string argument in args)
+                {
+                    readyargs = readyargs + argument + " ";
+                }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = @"J:\Учёба\Магистратура\2 курс\2 семестр\Дипломный проект\Программа\HospiFicationWithSyncNew\SyncModule\bin\Debug\net5.0\SyncModule.exe",
+                    Arguments = readyargs,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Запуск процесса и чтение его вывода
+                using (Process process = Process.Start(startInfo))
+                {
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        string result = reader.ReadToEnd();
+                        Console.WriteLine(result);
+                    }
+                }
+            }
+
+            /////////////////////////////////////////////////////////////
+            return RedirectToAction("Index");
         }
     }
 }
